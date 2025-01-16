@@ -5,15 +5,15 @@ import (
 	"hackaton-video-processor-worker/internal/infra/FFMPEG"
 	"hackaton-video-processor-worker/internal/infra/api/handlers"
 	"hackaton-video-processor-worker/internal/infra/fakeMQ"
-	"hackaton-video-processor-worker/internal/infra/fakeStorage"
-	"hackaton-video-processor-worker/internal/infra/fakeZIP"
+	"hackaton-video-processor-worker/internal/infra/s3"
+	"hackaton-video-processor-worker/internal/infra/zip"
 )
 
 func configHandlers() *AppHandlers {
 	videoProcessorRepository := FFMPEG.NewFFMPEG()
 	mqRepository := fakeMQ.NewFakeMQ()
-	storageRepository := fakeStorage.NewFakeStorage()
-	zipRepository := fakeZIP.NewFakeZIP()
+	storageRepository := s3.NewS3()
+	zipRepository := zip.NewZIP()
 	videoUsecase := usecases.NewConvertVideoUsecase(videoProcessorRepository, mqRepository, storageRepository, zipRepository)
 	videoProcessorHandler := handlers.NewVideoHandler(&videoUsecase)
 

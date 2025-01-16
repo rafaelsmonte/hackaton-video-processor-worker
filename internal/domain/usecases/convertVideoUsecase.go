@@ -4,6 +4,7 @@ import (
 	"hackaton-video-processor-worker/internal/domain/adapters"
 	"hackaton-video-processor-worker/internal/domain/entities"
 	"os"
+	"path/filepath"
 )
 
 type IConvertVideoUsecase interface {
@@ -62,6 +63,8 @@ func (u *ConvertVideoUsecase) Execute(ConvertVideoInput ConvertVideoInput) (Conv
 			u.videoProcessorMessaging.Publish("Erro ao baixar video " + err.Error())
 			return
 		}
+		defer os.Remove(filepath.Join(newFile.Path, newFile.Name))
+
 		newFolder, err := u.videoProcessorConverter.ConvertToImages(newFile)
 		defer os.RemoveAll(newFolder.Path)
 		if err != nil {
