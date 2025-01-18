@@ -16,20 +16,16 @@ import (
 )
 
 type S3 struct {
+	Client *s3.Client
+	Region string
 }
 
-func (f *S3) Download(file entities.File) (entities.File, error) {
-	cfg, err := config.LoadDefaultConfig(context.TODO())
-	if err != nil {
-		return entities.File{}, fmt.Errorf("unable to load SDK config: %w", err)
-	}
-
-	s3Client := s3.NewFromConfig(cfg)
+func (s3Instance *S3) Download(file entities.File) (entities.File, error) {
 
 	bucketName := "your-bucket-name"
 	key := file.Name
 
-	output, err := s3Client.GetObject(context.TODO(), &s3.GetObjectInput{
+	output, err := s3Instance.Client.GetObject(context.TODO(), &s3.GetObjectInput{
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(key),
 	})
@@ -60,13 +56,7 @@ func (f *S3) Download(file entities.File) (entities.File, error) {
 // export AWS_ACCESS_KEY_ID="your-access-key-id"
 // export AWS_SECRET_ACCESS_KEY="your-secret-access-key"
 // export AWS_REGION="your-region"
-func (f *S3) Upload(file entities.File) error {
-	cfg, err := config.LoadDefaultConfig(context.TODO())
-	if err != nil {
-		log.Fatalf("unable to load SDK config, %v", err)
-	}
-
-	s3Client := s3.NewFromConfig(cfg)
+func (s3Instance *S3) Upload(file entities.File) (string, error) {
 
 	filePath := filepath.Join(file.Path, file.Name)
 	bucketName := "your-bucket-name"
@@ -75,39 +65,36 @@ func (f *S3) Upload(file entities.File) error {
 	rFile, err := os.ReadFile(filePath)
 	if err != nil {
 		log.Fatalf("failed to read file, %v", err)
+		return "", err
+
 	}
 
-	_, err = s3Client.PutObject(context.TODO(), &s3.PutObjectInput{
+	_, err = s3Instance.Client.PutObject(context.TODO(), &s3.PutObjectInput{
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(key),
 		Body:   bytes.NewReader(rFile),
 	})
 	if err != nil {
 		log.Fatalf("failed to upload file, %v", err)
+		return "", err
+
 	}
 
 	fmt.Printf("Successfully uploaded %s to %s/%s\n", filePath, bucketName, key)
-	return nil
+	url := fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", bucketName, s3Instance.Region, key)
+	return url, nil
 }
 
-func NewS3() adapters.IVideoProcessorStorage {
-	// cfg, err := config.LoadDefaultConfig(context.TODO())
-	// if err != nil {
-	// 	log.Fatalf("unable to load SDK config, %v", err)
-	// }
+func NewS3() (adapters.IVideoProcessorStorage, error) {
+	cfg, err := config.LoadDefaultConfig(context.TODO())
+	if err != nil {
+		log.Fatalf("unable to load SDK config, %v", err)
+		return nil, err
+	}
 
-	// // Create an S3 client
-	// s3Client := s3.NewFromConfig(cfg)
-
-	// // List S3 buckets
-	// listBucketsOutput, err := s3Client.ListBuckets(context.TODO(), &s3.ListBucketsInput{})
-	// if err != nil {
-	// 	log.Fatalf("unable to list buckets, %v", err)
-	// }
-
-	// fmt.Println("Buckets:")
-	// for _, bucket := range listBucketsOutput.Buckets {
-	// 	fmt.Printf("* %s (created on %v)\n", aws.ToString(bucket.Name), bucket.CreationDate)
-	// }
-	return &S3{}
+	s3Client := s3.NewFromConfig(cfg)
+	return &S3{
+		Client: s3Client,
+		Region: cfg.Region,
+	}, nil
 }

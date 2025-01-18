@@ -19,9 +19,11 @@ type ConvertVideoUsecase struct {
 }
 
 type ConvertVideoInput struct {
-	VideoName string
-	VideoPath string
-	VideoId   string
+	VideoName        string
+	VideoPath        string
+	VideoId          string
+	UserId           string
+	VideoDescription string
 }
 
 type ConvertVideoOutput struct {
@@ -44,47 +46,82 @@ func NewConvertVideoUsecase(
 
 var workerPool = make(chan struct{}, 5)
 
-func (u *ConvertVideoUsecase) Execute(ConvertVideoInput ConvertVideoInput) (ConvertVideoOutput, error) {
+func (converVideo *ConvertVideoUsecase) Execute(ConvertVideoInput ConvertVideoInput) (ConvertVideoOutput, error) {
 
 	go func() {
 		workerPool <- struct{}{}
 		defer func() { <-workerPool }()
-
-		//TODO  Messages
-		//		Deletar arquivos no disco
-		err := u.videoProcessorMessaging.Publish("Processando")
+		extractingStartMessage := entities.NewMessage(entities.TargetVideoAPIService, entities.StartProcessingMessage, nil)
+		err := converVideo.videoProcessorMessaging.Publish(extractingStartMessage)
 		if err != nil {
+			//TODO remover panic
+			panic(err)
 		}
-
 		sourceFile := entities.NewFile(ConvertVideoInput.VideoId, ConvertVideoInput.VideoName, ConvertVideoInput.VideoPath)
-
-		newFile, err := u.videoProcessorStorage.Download(sourceFile)
+		newFile, err := converVideo.videoProcessorStorage.Download(sourceFile)
 		if err != nil {
-			u.videoProcessorMessaging.Publish("Erro ao baixar video " + err.Error())
+			converVideo.SendErrorMessage(err, ConvertVideoInput)
 			return
 		}
 		defer os.Remove(filepath.Join(newFile.Path, newFile.Name))
 
-		newFolder, err := u.videoProcessorConverter.ConvertToImages(newFile)
+		newFolder, err := converVideo.videoProcessorConverter.ConvertToImages(newFile)
 		defer os.RemoveAll(newFolder.Path)
 		if err != nil {
-			u.videoProcessorMessaging.Publish("Erro ao converter video " + err.Error())
+			converVideo.SendErrorMessage(err, ConvertVideoInput)
+
 			return
 		}
-		compressedFile, err := u.videoProcessorCompressor.Compress(newFolder)
+		compressedFile, err := converVideo.videoProcessorCompressor.Compress(newFolder)
 		if err != nil {
-			u.videoProcessorMessaging.Publish("Erro ao zipar video " + err.Error())
+			converVideo.SendErrorMessage(err, ConvertVideoInput)
+
 			return
 		}
-		err = u.videoProcessorStorage.Upload(compressedFile)
+		uploadURL, err := converVideo.videoProcessorStorage.Upload(compressedFile)
 		if err != nil {
-			u.videoProcessorMessaging.Publish("Erro ao upar video " + err.Error())
+			converVideo.SendErrorMessage(err, ConvertVideoInput)
+
 			return
 		}
 		defer os.Remove(compressedFile.Path + "")
-		u.videoProcessorMessaging.Publish("Complete")
+		extractingSuccessMessage := entities.NewMessage(
+			entities.TargetVideoAPIService,
+			entities.ExtractSuccessMessage,
+			entities.ExtractSuccessPayload{
+				VideoSnapshotsUrl: uploadURL,
+				VideoId:           ConvertVideoInput.VideoId,
+			})
+
+		converVideo.videoProcessorMessaging.Publish(extractingSuccessMessage)
 
 	}()
 
 	return ConvertVideoOutput{}, nil
+}
+
+func (converVideo *ConvertVideoUsecase) SendErrorMessage(err error, ConvertVideoInput ConvertVideoInput) {
+
+	processingErrorMessage := entities.NewMessage(
+		entities.TargetVideoAPIService,
+		entities.ExtractErrorMessage,
+		entities.ExtractErrorPayload{
+			VideoId:          ConvertVideoInput.VideoId,
+			ErrorMessage:     err.Error(),
+			ErrorDescription: err.Error(),
+		})
+	sendErrorMessage := entities.NewMessage(
+		entities.TargetEmailService,
+		entities.SendErrorMessage,
+		entities.ExtractSendErrorPayload{
+			UserID:            ConvertVideoInput.UserId,
+			VideoUrl:          ConvertVideoInput.VideoPath,
+			VideoSnapshotsUrl: ConvertVideoInput.VideoPath,
+			VideoDescription:  ConvertVideoInput.VideoDescription,
+			ErrorMessage:      err.Error(),
+			ErrorDescription:  err.Error(),
+		})
+	converVideo.videoProcessorMessaging.Publish(processingErrorMessage)
+	converVideo.videoProcessorMessaging.Publish(sendErrorMessage)
+
 }
