@@ -4,7 +4,7 @@ import (
 	"hackaton-video-processor-worker/internal/domain/usecases"
 	"hackaton-video-processor-worker/internal/infra/FFMPEG"
 	"hackaton-video-processor-worker/internal/infra/api/handlers"
-	"hackaton-video-processor-worker/internal/infra/s3"
+	"hackaton-video-processor-worker/internal/infra/fakeS3"
 	"hackaton-video-processor-worker/internal/infra/sns"
 	"hackaton-video-processor-worker/internal/infra/zip"
 	"log"
@@ -16,7 +16,7 @@ func configHandlers() *AppHandlers {
 	if err != nil {
 		log.Fatalln("Error connecting to SNS", err)
 	}
-	storageRepository, err := s3.NewS3()
+	storageRepository, err := fakeS3.NewS3()
 	if err != nil {
 		log.Fatalln("Error connecting to SNS", err)
 	}

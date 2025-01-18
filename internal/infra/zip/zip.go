@@ -5,7 +5,6 @@ import (
 	"hackaton-video-processor-worker/internal/domain/adapters"
 	"hackaton-video-processor-worker/internal/domain/entities"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -15,7 +14,6 @@ type ZIP struct {
 }
 
 func (f *ZIP) Compress(file entities.Folder) (entities.File, error) {
-
 	zipFile, err := os.Create(file.Path + ".zip")
 	if err != nil {
 		return entities.NewFile("", "", ""), err
@@ -49,8 +47,6 @@ func (f *ZIP) Compress(file entities.Folder) (entities.File, error) {
 		_, err = io.Copy(zipEntry, file)
 		return err
 	})
-
-	log.Println("Mensagem publicada na fakeZIP - ", file)
 	return entities.NewFile(filepath.Base(file.Path), zipFile.Name(), file.Path+".zip"), nil
 }
 

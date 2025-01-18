@@ -11,6 +11,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 )
@@ -21,6 +22,9 @@ type SNS struct {
 
 // Publish implements adapters.IVideoProcessorMessaging.
 func (snsInstance *SNS) Publish(message entities.Message) error {
+
+	log.Println(string(message.MessatgeType), message.Payload)
+
 	ctx := context.Background()
 	//TODO verificar esse topic arn
 	topicArn := os.Getenv("TOPIC_ARN")
@@ -49,9 +53,31 @@ func (snsInstance *SNS) Publish(message entities.Message) error {
 }
 
 func NewSNS() (adapters.IVideoProcessorMessaging, error) {
-	cfg, err := config.LoadDefaultConfig(context.TODO())
-	if err != nil {
-		return nil, fmt.Errorf("failed to load AWS SDK config: %w", err)
+	var cfg aws.Config
+	var err error
+
+	if os.Getenv("ENV") == "DEV" {
+		cfg, err = config.LoadDefaultConfig(context.TODO(),
+			config.WithEndpointResolver(aws.EndpointResolverFunc(func(service, region string) (aws.Endpoint, error) {
+				return aws.Endpoint{
+					URL:           "http://localhost:4566",
+					SigningRegion: "us-east-1",
+				}, nil
+			})),
+			config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
+				"test",
+				"test",
+				"",
+			)),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load AWS SDK config: %w", err)
+		}
+	} else {
+		cfg, err = config.LoadDefaultConfig(context.TODO())
+		if err != nil {
+			return nil, fmt.Errorf("failed to load AWS SDK config: %w", err)
+		}
 	}
 
 	return &SNS{

@@ -12,6 +12,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
@@ -22,14 +23,19 @@ type S3 struct {
 
 func (s3Instance *S3) Download(file entities.File) (entities.File, error) {
 
-	bucketName := "your-bucket-name"
-	key := file.Name
+	bucketName := os.Getenv("S3_BUCKET_NAME")
+	if bucketName == "" {
+		return entities.File{}, fmt.Errorf("S3_BUCKET_NAME environment variable is not set")
+	}
+	key := file.Id
+	fmt.Println(key, bucketName)
 
 	output, err := s3Instance.Client.GetObject(context.TODO(), &s3.GetObjectInput{
-		Bucket: aws.String(bucketName),
+		Bucket: aws.String("s3://videobucket/"),
 		Key:    aws.String(key),
 	})
 	if err != nil {
+		panic(err)
 		return entities.File{}, fmt.Errorf("failed to download file from S3: %w", err)
 	}
 	defer output.Body.Close()
@@ -59,8 +65,8 @@ func (s3Instance *S3) Download(file entities.File) (entities.File, error) {
 func (s3Instance *S3) Upload(file entities.File) (string, error) {
 
 	filePath := filepath.Join(file.Path, file.Name)
-	bucketName := "your-bucket-name"
-	key := "example.txt"
+	bucketName := os.Getenv("S3_BUCKET_NAME")
+	key := file.Id
 
 	rFile, err := os.ReadFile(filePath)
 	if err != nil {
@@ -86,10 +92,32 @@ func (s3Instance *S3) Upload(file entities.File) (string, error) {
 }
 
 func NewS3() (adapters.IVideoProcessorStorage, error) {
-	cfg, err := config.LoadDefaultConfig(context.TODO())
-	if err != nil {
-		log.Fatalf("unable to load SDK config, %v", err)
-		return nil, err
+	var cfg aws.Config
+	var err error
+
+	if os.Getenv("ENV") == "DEV" {
+		cfg, err = config.LoadDefaultConfig(context.TODO(),
+			config.WithRegion("us-east-1"),
+			config.WithEndpointResolver(aws.EndpointResolverFunc(func(service, region string) (aws.Endpoint, error) {
+				return aws.Endpoint{
+					URL:           "http://localhost:4566",
+					SigningRegion: "us-east-1",
+				}, nil
+			})),
+			config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
+				"test",
+				"test",
+				"",
+			)),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load AWS SDK config: %w", err)
+		}
+	} else {
+		cfg, err = config.LoadDefaultConfig(context.TODO())
+		if err != nil {
+			return nil, fmt.Errorf("failed to load AWS SDK config: %w", err)
+		}
 	}
 
 	s3Client := s3.NewFromConfig(cfg)

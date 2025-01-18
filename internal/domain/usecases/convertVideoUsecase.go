@@ -51,6 +51,7 @@ func (converVideo *ConvertVideoUsecase) Execute(ConvertVideoInput ConvertVideoIn
 	go func() {
 		workerPool <- struct{}{}
 		defer func() { <-workerPool }()
+
 		extractingStartMessage := entities.NewMessage(entities.TargetVideoAPIService, entities.StartProcessingMessage, nil)
 		err := converVideo.videoProcessorMessaging.Publish(extractingStartMessage)
 		if err != nil {
@@ -75,7 +76,6 @@ func (converVideo *ConvertVideoUsecase) Execute(ConvertVideoInput ConvertVideoIn
 		compressedFile, err := converVideo.videoProcessorCompressor.Compress(newFolder)
 		if err != nil {
 			converVideo.SendErrorMessage(err, ConvertVideoInput)
-
 			return
 		}
 		uploadURL, err := converVideo.videoProcessorStorage.Upload(compressedFile)
@@ -84,7 +84,7 @@ func (converVideo *ConvertVideoUsecase) Execute(ConvertVideoInput ConvertVideoIn
 
 			return
 		}
-		defer os.Remove(compressedFile.Path + "")
+		defer os.Remove(compressedFile.Path)
 		extractingSuccessMessage := entities.NewMessage(
 			entities.TargetVideoAPIService,
 			entities.ExtractSuccessMessage,

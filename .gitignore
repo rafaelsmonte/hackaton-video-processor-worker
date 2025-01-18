@@ -30,4 +30,11 @@ mocks/
 
 # Ignore all .png files
 *.png
+*.mp4
+
+ffmpeg/
+upload/
+.env
+
+
 
