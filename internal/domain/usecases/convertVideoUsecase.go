@@ -3,8 +3,6 @@ package usecases
 import (
 	"hackaton-video-processor-worker/internal/domain/adapters"
 	"hackaton-video-processor-worker/internal/domain/entities"
-	"os"
-	"path/filepath"
 )
 
 type IConvertVideoUsecase interface {
@@ -58,16 +56,16 @@ func (converVideo *ConvertVideoUsecase) Execute(ConvertVideoInput ConvertVideoIn
 			//TODO remover panic
 			panic(err)
 		}
-		sourceFile := entities.NewFile(ConvertVideoInput.VideoId, ConvertVideoInput.VideoName, ConvertVideoInput.VideoUrl)
+		sourceFile := entities.NewFile(ConvertVideoInput.VideoId, ConvertVideoInput.VideoUrl, nil)
 		newFile, err := converVideo.videoProcessorStorage.Download(sourceFile)
 		if err != nil {
 			converVideo.SendErrorMessage(err, ConvertVideoInput)
 			return
 		}
-		defer os.Remove(filepath.Join(newFile.Path, newFile.Name))
+		//defer os.Remove(filepath.Join(newFile.Path, newFile.Name))
 
 		newFolder, err := converVideo.videoProcessorConverter.ConvertToImages(newFile)
-		defer os.RemoveAll(newFolder.Path)
+		//defer os.RemoveAll(newFolder.Path)
 		if err != nil {
 			converVideo.SendErrorMessage(err, ConvertVideoInput)
 
@@ -84,7 +82,7 @@ func (converVideo *ConvertVideoUsecase) Execute(ConvertVideoInput ConvertVideoIn
 
 			return
 		}
-		defer os.Remove(compressedFile.Path)
+		//defer os.Remove(compressedFile.Path)
 		extractingSuccessMessage := entities.NewMessage(
 			entities.TargetVideoSQSService,
 			entities.ExtractSuccessMessage,

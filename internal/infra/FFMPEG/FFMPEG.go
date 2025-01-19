@@ -1,13 +1,12 @@
 package FFMPEG
 
 import (
+	"fmt"
 	"hackaton-video-processor-worker/internal/domain/adapters"
 	"hackaton-video-processor-worker/internal/domain/entities"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"time"
 )
 
@@ -16,48 +15,41 @@ type FFMPEG struct {
 
 // ConvertToImages implements adapters.IVideoProcessorConverter.
 func (f *FFMPEG) ConvertToImages(file entities.File) (entities.Folder, error) {
-	// destinationFolder := filepath.Join("/home/ra056172/fiap/hackaton-video-processor-worker/ffmpeg", file.Id+time.Now().Format("20060102150405"))
-	// os.Mkdir(destinationFolder, os.ModeTemporary)
+	inputFileData := file.Content
+	folderName := time.Now().Format("20060102150405")
+	pr, pw, _ := os.Pipe()
 
-	// outputPattern := filepath.Join(destinationFolder, "-frame-%04d.jpg")
-	// inputFile := filepath.Join(file.Path, file.Name)
+	outputDir := fmt.Sprintf("./output_frames_%s/", folderName)
+	if err := os.MkdirAll(outputDir, 0755); err != nil {
+		fmt.Printf("Error creating output directory: %v\n", err)
+		return entities.Folder{}, nil
 
-	// cmd := exec.Command("ffmpeg", "-i", inputFile, "-vf", "fps=1", outputPattern)
-
-	// cmd.Stdout = os.Stderr
-	// cmd.Stderr = os.Stderr
-
-	// err := cmd.Run()
-	// if err != nil {
-	// 	log.Printf("Erro ao executar ffmpeg: %v\n", err)
-	// 	return entities.NewFolder(""), err
-
-	// }
-	// return entities.NewFolder(destinationFolder), nil
-	fileName := strings.TrimSuffix(file.Name, filepath.Ext(file.Name))
-
-	destinationFolder := filepath.Join("/home/ra056172/fiap/hackaton-video-processor-worker/ffmpeg", fileName+time.Now().Format("20060102150405"))
-	err := os.Mkdir(destinationFolder, os.ModePerm)
-	if err != nil {
-		log.Printf("Ao criar pasta destino: %v\n", err)
-		return entities.NewFolder(""), err
 	}
-	outputPattern := filepath.Join(destinationFolder, "frame-%04d.jpg")
-	inputFile := filepath.Join(file.Path, file.Name)
+	outputPattern := filepath.Join(outputDir, "output%d.jpg")
 
-	cmd := exec.Command("ffmpeg", "-i", inputFile, "-vf", "fps=1", outputPattern)
+	cmd := exec.Command("ffmpeg", "-i", "pipe:0", "-vf", "fps=1", outputPattern)
 
+	cmd.Stdin = pr
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	err = cmd.Run()
-	if err != nil {
-		log.Printf("Erro ao executar ffmpeg: %v\n", err)
-		return entities.NewFolder(""), err
+	if err := cmd.Start(); err != nil {
+		fmt.Printf("Error starting ffmpeg: %v\n", err)
+		return entities.Folder{}, nil
 	}
 
-	log.Println("Convertando arquivo para imagens", file)
-	return entities.NewFolder(destinationFolder), nil
+	go func() {
+		defer pw.Close()
+		pw.Write(inputFileData)
+	}()
+
+	if err := cmd.Wait(); err != nil {
+		fmt.Printf("Error waiting for ffmpeg: %v\n", err)
+		return entities.Folder{}, nil
+
+	}
+
+	return entities.NewFolder(outputDir, folderName), nil
 
 }
 

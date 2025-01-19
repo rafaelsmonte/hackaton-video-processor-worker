@@ -14,9 +14,9 @@ type ZIP struct {
 }
 
 func (f *ZIP) Compress(file entities.Folder) (entities.File, error) {
-	zipFile, err := os.Create(file.Path + ".zip")
+	zipFile, err := os.Create(file.Id + ".zip")
 	if err != nil {
-		return entities.NewFile("", "", ""), err
+		return entities.NewFile("", "", nil), err
 	}
 	defer zipFile.Close()
 
@@ -47,7 +47,8 @@ func (f *ZIP) Compress(file entities.Folder) (entities.File, error) {
 		_, err = io.Copy(zipEntry, file)
 		return err
 	})
-	return entities.NewFile(filepath.Base(file.Path), zipFile.Name(), file.Path+".zip"), nil
+
+	return entities.NewFile(file.Id+".zip", file.Path, nil), nil
 }
 
 func NewZIP() adapters.IVideoProcessorCompressor {

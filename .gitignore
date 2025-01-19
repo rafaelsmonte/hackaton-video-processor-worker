@@ -36,5 +36,5 @@ ffmpeg/
 upload/
 .env
 
-
+*.sh
 
