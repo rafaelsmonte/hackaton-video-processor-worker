@@ -1,9 +1,8 @@
 package dto
 
 type VideoProcessRequest struct {
-	Name string `query:"name"`
-	Id   string `query:"id"`
-	Path string `query:"path"`
+	VideoUrl string `json:"videoUrl"`
+	VideoId  string `json:"videoId"`
 }
 
 type VideoProcessResponse struct {

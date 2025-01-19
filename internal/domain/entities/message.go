@@ -7,7 +7,7 @@ const (
 	SendErrorMessage       MessageTypeEnum = "MSG_SEND_SNAPSHOT_EXTRACTION_ERROR"
 	SendSuccessMessage     MessageTypeEnum = "MSG_SEND_SNAPSHOT_EXTRACTION_SUCCESS"
 	sender                 string          = "VIDEO_IMAGE_PROCESSOR_SERVICE"
-	TargetVideoAPIService  Target          = "VIDEO_API_SERVICE"
+	TargetVideoSQSService  Target          = "VIDEO_SQS_SERVICE"
 	TargetEmailService     Target          = "EMAIL_SERVICE"
 )
 

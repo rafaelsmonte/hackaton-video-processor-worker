@@ -20,14 +20,14 @@ type ConvertVideoUsecase struct {
 
 type ConvertVideoInput struct {
 	VideoName        string
-	VideoPath        string
+	VideoUrl         string
 	VideoId          string
 	UserId           string
 	VideoDescription string
 }
 
 type ConvertVideoOutput struct {
-	VideoPath string
+	VideoUrl string
 }
 
 func NewConvertVideoUsecase(
@@ -52,13 +52,13 @@ func (converVideo *ConvertVideoUsecase) Execute(ConvertVideoInput ConvertVideoIn
 		workerPool <- struct{}{}
 		defer func() { <-workerPool }()
 
-		extractingStartMessage := entities.NewMessage(entities.TargetVideoAPIService, entities.StartProcessingMessage, nil)
+		extractingStartMessage := entities.NewMessage(entities.TargetVideoSQSService, entities.StartProcessingMessage, nil)
 		err := converVideo.videoProcessorMessaging.Publish(extractingStartMessage)
 		if err != nil {
 			//TODO remover panic
 			panic(err)
 		}
-		sourceFile := entities.NewFile(ConvertVideoInput.VideoId, ConvertVideoInput.VideoName, ConvertVideoInput.VideoPath)
+		sourceFile := entities.NewFile(ConvertVideoInput.VideoId, ConvertVideoInput.VideoName, ConvertVideoInput.VideoUrl)
 		newFile, err := converVideo.videoProcessorStorage.Download(sourceFile)
 		if err != nil {
 			converVideo.SendErrorMessage(err, ConvertVideoInput)
@@ -86,7 +86,7 @@ func (converVideo *ConvertVideoUsecase) Execute(ConvertVideoInput ConvertVideoIn
 		}
 		defer os.Remove(compressedFile.Path)
 		extractingSuccessMessage := entities.NewMessage(
-			entities.TargetVideoAPIService,
+			entities.TargetVideoSQSService,
 			entities.ExtractSuccessMessage,
 			entities.ExtractSuccessPayload{
 				VideoSnapshotsUrl: uploadURL,
@@ -103,7 +103,7 @@ func (converVideo *ConvertVideoUsecase) Execute(ConvertVideoInput ConvertVideoIn
 func (converVideo *ConvertVideoUsecase) SendErrorMessage(err error, ConvertVideoInput ConvertVideoInput) {
 
 	processingErrorMessage := entities.NewMessage(
-		entities.TargetVideoAPIService,
+		entities.TargetVideoSQSService,
 		entities.ExtractErrorMessage,
 		entities.ExtractErrorPayload{
 			VideoId:          ConvertVideoInput.VideoId,
@@ -115,8 +115,8 @@ func (converVideo *ConvertVideoUsecase) SendErrorMessage(err error, ConvertVideo
 		entities.SendErrorMessage,
 		entities.ExtractSendErrorPayload{
 			UserID:            ConvertVideoInput.UserId,
-			VideoUrl:          ConvertVideoInput.VideoPath,
-			VideoSnapshotsUrl: ConvertVideoInput.VideoPath,
+			VideoUrl:          ConvertVideoInput.VideoUrl,
+			VideoSnapshotsUrl: ConvertVideoInput.VideoUrl,
 			VideoDescription:  ConvertVideoInput.VideoDescription,
 			ErrorMessage:      err.Error(),
 			ErrorDescription:  err.Error(),
