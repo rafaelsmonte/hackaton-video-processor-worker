@@ -63,17 +63,21 @@ func (s *SQSService) StartConsuming(ctx context.Context) {
 			return
 		default:
 			msgs, err := s.receiveMessages()
-			if err != nil {
-				log.Fatalf("Error receiving messages: %v", err)
-				continue
-			}
+			go func() {
 
-			for _, msg := range msgs {
-				if err := s.processMessage(msg); err != nil {
-					log.Printf("Error processing message: %v", err)
-					continue
+				if err != nil {
+					log.Fatalf("Error receiving messages: %v", err)
+					return
 				}
-			}
+
+				for _, msg := range msgs {
+					if err := s.processMessage(msg); err != nil {
+						log.Printf("Error processing message: %v", err)
+						return
+					}
+				}
+			}()
+
 		}
 	}
 }
@@ -82,7 +86,7 @@ func (s *SQSService) receiveMessages() ([]*sqs.Message, error) {
 	output, err := s.sqsClient.ReceiveMessage(&sqs.ReceiveMessageInput{
 		QueueUrl:            aws.String(s.queueURL),
 		MaxNumberOfMessages: aws.Int64(10),
-		WaitTimeSeconds:     aws.Int64(20),
+		WaitTimeSeconds:     aws.Int64(5),
 	})
 	if err != nil {
 		return nil, err

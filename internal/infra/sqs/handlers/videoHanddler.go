@@ -29,7 +29,6 @@ func (h *VideoHandler) HandleMessage(body *string) error {
 			VideoId  string `json:"videoId"`
 		} `json:"payload"`
 	}
-	fmt.Println("123")
 
 	if err := json.Unmarshal([]byte(*body), &message); err != nil {
 		log.Printf("Failed to unmarshal message body: %v", err)

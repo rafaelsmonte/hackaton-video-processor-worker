@@ -27,9 +27,9 @@ func (snsInstance *SNS) Publish(message entities.Message) error {
 
 	ctx := context.Background()
 	//TODO verificar esse topic arn
-	topicArn := os.Getenv("TOPIC_ARN")
+	topicArn := os.Getenv("SNS_TOPIC_ARN")
 	if topicArn == "" {
-		return fmt.Errorf("TOPIC_ARN is not set")
+		return fmt.Errorf("SNS_TOPIC_ARN is not set")
 	}
 
 	messageBody, err := json.Marshal(message)
