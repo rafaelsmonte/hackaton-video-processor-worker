@@ -2,12 +2,12 @@ package entities
 
 type Folder struct {
 	Path string
-	Id   string
+	Name string
 }
 
-func NewFolder(path, id string) Folder {
+func NewFolder(path, name string) Folder {
 	return Folder{
 		Path: path,
-		Id:   id,
+		Name: name,
 	}
 }

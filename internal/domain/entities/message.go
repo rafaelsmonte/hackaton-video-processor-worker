@@ -32,18 +32,18 @@ type ExtractErrorPayload struct {
 }
 
 type ExtractSendSuccessPayload struct {
-	UserID            string
 	VideoSnapshotsUrl string
 	VideoUrl          string
-	VideoDescription  string
 }
 type ExtractSendErrorPayload struct {
-	UserID            string
 	VideoSnapshotsUrl string
 	VideoUrl          string
-	VideoDescription  string
 	ErrorMessage      string
 	ErrorDescription  string
+}
+
+type StartProcessingPayload struct {
+	VideoId string
 }
 
 func NewMessage(target Target, messageType MessageTypeEnum, payload interface{}) Message {

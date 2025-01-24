@@ -3,6 +3,7 @@ package usecases
 import (
 	"hackaton-video-processor-worker/internal/domain/adapters"
 	"hackaton-video-processor-worker/internal/domain/entities"
+	"os"
 )
 
 type IConvertVideoUsecase interface {
@@ -50,7 +51,12 @@ func (converVideo *ConvertVideoUsecase) Execute(ConvertVideoInput ConvertVideoIn
 		workerPool <- struct{}{}
 		defer func() { <-workerPool }()
 
-		extractingStartMessage := entities.NewMessage(entities.TargetVideoSQSService, entities.StartProcessingMessage, nil)
+		extractingStartMessage := entities.NewMessage(
+			entities.TargetVideoSQSService,
+			entities.StartProcessingMessage,
+			entities.StartProcessingPayload{
+				VideoId: ConvertVideoInput.VideoId,
+			})
 		err := converVideo.videoProcessorMessaging.Publish(extractingStartMessage)
 		if err != nil {
 			//TODO remover panic
@@ -62,16 +68,16 @@ func (converVideo *ConvertVideoUsecase) Execute(ConvertVideoInput ConvertVideoIn
 			converVideo.SendErrorMessage(err, ConvertVideoInput)
 			return
 		}
-		//defer os.Remove(filepath.Join(newFile.Path, newFile.Name))
 
 		newFolder, err := converVideo.videoProcessorConverter.ConvertToImages(newFile)
-		//defer os.RemoveAll(newFolder.Path)
+		defer os.RemoveAll(newFolder.Path)
 		if err != nil {
 			converVideo.SendErrorMessage(err, ConvertVideoInput)
 
 			return
 		}
 		compressedFile, err := converVideo.videoProcessorCompressor.Compress(newFolder)
+		defer os.Remove(compressedFile.Id)
 		if err != nil {
 			converVideo.SendErrorMessage(err, ConvertVideoInput)
 			return
@@ -82,7 +88,6 @@ func (converVideo *ConvertVideoUsecase) Execute(ConvertVideoInput ConvertVideoIn
 
 			return
 		}
-		//defer os.Remove(compressedFile.Path)
 		extractingSuccessMessage := entities.NewMessage(
 			entities.TargetVideoSQSService,
 			entities.ExtractSuccessMessage,
@@ -112,10 +117,8 @@ func (converVideo *ConvertVideoUsecase) SendErrorMessage(err error, ConvertVideo
 		entities.TargetEmailService,
 		entities.SendErrorMessage,
 		entities.ExtractSendErrorPayload{
-			UserID:            ConvertVideoInput.UserId,
 			VideoUrl:          ConvertVideoInput.VideoUrl,
 			VideoSnapshotsUrl: ConvertVideoInput.VideoUrl,
-			VideoDescription:  ConvertVideoInput.VideoDescription,
 			ErrorMessage:      err.Error(),
 			ErrorDescription:  err.Error(),
 		})
