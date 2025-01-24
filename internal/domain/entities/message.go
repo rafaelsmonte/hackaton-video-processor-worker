@@ -7,7 +7,7 @@ const (
 	SendErrorMessage       MessageTypeEnum = "MSG_SEND_SNAPSHOT_EXTRACTION_ERROR"
 	SendSuccessMessage     MessageTypeEnum = "MSG_SEND_SNAPSHOT_EXTRACTION_SUCCESS"
 	sender                 string          = "VIDEO_IMAGE_PROCESSOR_SERVICE"
-	TargetVideoAPIService  Target          = "VIDEO_API_SERVICE"
+	TargetVideoSQSService  Target          = "VIDEO_SQS_SERVICE"
 	TargetEmailService     Target          = "EMAIL_SERVICE"
 )
 
@@ -32,18 +32,18 @@ type ExtractErrorPayload struct {
 }
 
 type ExtractSendSuccessPayload struct {
-	UserID            string
 	VideoSnapshotsUrl string
 	VideoUrl          string
-	VideoDescription  string
 }
 type ExtractSendErrorPayload struct {
-	UserID            string
 	VideoSnapshotsUrl string
 	VideoUrl          string
-	VideoDescription  string
 	ErrorMessage      string
 	ErrorDescription  string
+}
+
+type StartProcessingPayload struct {
+	VideoId string
 }
 
 func NewMessage(target Target, messageType MessageTypeEnum, payload interface{}) Message {

@@ -4,7 +4,6 @@ import (
 	"hackaton-video-processor-worker/internal/domain/adapters"
 	"hackaton-video-processor-worker/internal/domain/entities"
 	"os"
-	"path/filepath"
 )
 
 type IConvertVideoUsecase interface {
@@ -20,14 +19,14 @@ type ConvertVideoUsecase struct {
 
 type ConvertVideoInput struct {
 	VideoName        string
-	VideoPath        string
+	VideoUrl         string
 	VideoId          string
 	UserId           string
 	VideoDescription string
 }
 
 type ConvertVideoOutput struct {
-	VideoPath string
+	VideoUrl string
 }
 
 func NewConvertVideoUsecase(
@@ -52,19 +51,23 @@ func (converVideo *ConvertVideoUsecase) Execute(ConvertVideoInput ConvertVideoIn
 		workerPool <- struct{}{}
 		defer func() { <-workerPool }()
 
-		extractingStartMessage := entities.NewMessage(entities.TargetVideoAPIService, entities.StartProcessingMessage, nil)
+		extractingStartMessage := entities.NewMessage(
+			entities.TargetVideoSQSService,
+			entities.StartProcessingMessage,
+			entities.StartProcessingPayload{
+				VideoId: ConvertVideoInput.VideoId,
+			})
 		err := converVideo.videoProcessorMessaging.Publish(extractingStartMessage)
 		if err != nil {
 			//TODO remover panic
 			panic(err)
 		}
-		sourceFile := entities.NewFile(ConvertVideoInput.VideoId, ConvertVideoInput.VideoName, ConvertVideoInput.VideoPath)
+		sourceFile := entities.NewFile(ConvertVideoInput.VideoId, ConvertVideoInput.VideoUrl, nil)
 		newFile, err := converVideo.videoProcessorStorage.Download(sourceFile)
 		if err != nil {
 			converVideo.SendErrorMessage(err, ConvertVideoInput)
 			return
 		}
-		defer os.Remove(filepath.Join(newFile.Path, newFile.Name))
 
 		newFolder, err := converVideo.videoProcessorConverter.ConvertToImages(newFile)
 		defer os.RemoveAll(newFolder.Path)
@@ -74,6 +77,7 @@ func (converVideo *ConvertVideoUsecase) Execute(ConvertVideoInput ConvertVideoIn
 			return
 		}
 		compressedFile, err := converVideo.videoProcessorCompressor.Compress(newFolder)
+		defer os.Remove(compressedFile.Id)
 		if err != nil {
 			converVideo.SendErrorMessage(err, ConvertVideoInput)
 			return
@@ -84,9 +88,8 @@ func (converVideo *ConvertVideoUsecase) Execute(ConvertVideoInput ConvertVideoIn
 
 			return
 		}
-		defer os.Remove(compressedFile.Path)
 		extractingSuccessMessage := entities.NewMessage(
-			entities.TargetVideoAPIService,
+			entities.TargetVideoSQSService,
 			entities.ExtractSuccessMessage,
 			entities.ExtractSuccessPayload{
 				VideoSnapshotsUrl: uploadURL,
@@ -103,7 +106,7 @@ func (converVideo *ConvertVideoUsecase) Execute(ConvertVideoInput ConvertVideoIn
 func (converVideo *ConvertVideoUsecase) SendErrorMessage(err error, ConvertVideoInput ConvertVideoInput) {
 
 	processingErrorMessage := entities.NewMessage(
-		entities.TargetVideoAPIService,
+		entities.TargetVideoSQSService,
 		entities.ExtractErrorMessage,
 		entities.ExtractErrorPayload{
 			VideoId:          ConvertVideoInput.VideoId,
@@ -114,10 +117,8 @@ func (converVideo *ConvertVideoUsecase) SendErrorMessage(err error, ConvertVideo
 		entities.TargetEmailService,
 		entities.SendErrorMessage,
 		entities.ExtractSendErrorPayload{
-			UserID:            ConvertVideoInput.UserId,
-			VideoUrl:          ConvertVideoInput.VideoPath,
-			VideoSnapshotsUrl: ConvertVideoInput.VideoPath,
-			VideoDescription:  ConvertVideoInput.VideoDescription,
+			VideoUrl:          ConvertVideoInput.VideoUrl,
+			VideoSnapshotsUrl: ConvertVideoInput.VideoUrl,
 			ErrorMessage:      err.Error(),
 			ErrorDescription:  err.Error(),
 		})
