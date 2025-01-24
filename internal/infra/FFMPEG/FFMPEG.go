@@ -1,6 +1,7 @@
 package FFMPEG
 
 import (
+	"bytes"
 	"fmt"
 	"hackaton-video-processor-worker/internal/domain/adapters"
 	"hackaton-video-processor-worker/internal/domain/entities"
@@ -13,7 +14,6 @@ import (
 type FFMPEG struct {
 }
 
-// ConvertToImages implements adapters.IVideoProcessorConverter.
 func (f *FFMPEG) ConvertToImages(file entities.File) (entities.Folder, error) {
 	inputFileData := file.Content
 	folderName := time.Now().Format("20060102150405")
@@ -30,8 +30,8 @@ func (f *FFMPEG) ConvertToImages(file entities.File) (entities.Folder, error) {
 	cmd := exec.Command("ffmpeg", "-i", "pipe:0", "-vf", "fps=1", outputPattern)
 
 	cmd.Stdin = pr
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd.Stdout = &bytes.Buffer{}
+	cmd.Stderr = &bytes.Buffer{}
 
 	if err := cmd.Start(); err != nil {
 		fmt.Printf("Error starting ffmpeg: %v\n", err)

@@ -20,13 +20,11 @@ type SNS struct {
 	Client *sns.Client
 }
 
-// Publish implements adapters.IVideoProcessorMessaging.
 func (snsInstance *SNS) Publish(message entities.Message) error {
 
 	log.Println(string(message.MessatgeType), message.Payload)
 
 	ctx := context.Background()
-	//TODO verificar esse topic arn
 	topicArn := os.Getenv("SNS_TOPIC_ARN")
 	if topicArn == "" {
 		return fmt.Errorf("SNS_TOPIC_ARN is not set")
@@ -38,9 +36,8 @@ func (snsInstance *SNS) Publish(message entities.Message) error {
 	}
 
 	input := &sns.PublishInput{
-		TopicArn:       aws.String(topicArn),
-		Message:        aws.String(string(messageBody)),
-		MessageGroupId: aws.String(string(message.MessatgeType)),
+		TopicArn: aws.String(topicArn),
+		Message:  aws.String(string(messageBody)),
 	}
 
 	_, err = snsInstance.Client.Publish(ctx, input)

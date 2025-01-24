@@ -20,30 +20,25 @@ type SQSService struct {
 
 type AppHandlers struct {
 	videoProcessorHandler *handlers.VideoHandler
-	// Add new handlers here
 }
 
 func NewSQSService(region, queueURL string, handler *AppHandlers) *SQSService {
-	env := os.Getenv("ENV") // Obtemos o valor da variável de ambiente
-
+	env := os.Getenv("ENV")
 	var awsConfig *aws.Config
 
 	if env == "DEV" {
-		// Configuração para LocalStack
 		awsConfig = &aws.Config{
-			Region:   aws.String("us-east-1"),             // Região padrão
-			Endpoint: aws.String("http://localhost:4566"), // Endpoint do LocalStack
+			Region:   aws.String("us-east-1"),
+			Endpoint: aws.String("http://localhost:4566"),
 		}
 		log.Println("Using LocalStack for SQS")
 	} else {
-		// Configuração para AWS real
 		awsConfig = &aws.Config{
-			Region: aws.String("us-east-1"), // Substitua pela região correta
+			Region: aws.String(region),
 		}
 		log.Println("Using AWS SQS")
 	}
 
-	// Cria uma sessão AWS
 	sess := session.Must(session.NewSession(awsConfig))
 
 	sqsClient := sqs.New(sess)
@@ -120,7 +115,6 @@ func SetUpSQSService() {
 	ctx := context.Background()
 	queueURL := os.Getenv("SQS_QUEUE_URL")
 	region := os.Getenv("AWS_REGION")
-	fmt.Println(queueURL)
 	handler := configHandlers()
 	sqsService := NewSQSService(region, queueURL, handler)
 

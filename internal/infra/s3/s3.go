@@ -21,13 +21,14 @@ type S3 struct {
 
 func NewS3() (adapters.IVideoProcessorStorage, error) {
 	env := os.Getenv("ENV")
+	region := os.Getenv("AWS_S3_REGION")
 	var cfg aws.Config
 	var err error
 
 	if env == "DEV" {
 		// Use LocalStack when in DEV environment
 		cfg, err = config.LoadDefaultConfig(context.TODO(),
-			config.WithRegion("us-east-1"),
+			config.WithRegion(region),
 			config.WithEndpointResolver(aws.EndpointResolverFunc(func(service, region string) (aws.Endpoint, error) {
 				if service == s3.ServiceID {
 					// Set LocalStack endpoint for S3
@@ -40,9 +41,8 @@ func NewS3() (adapters.IVideoProcessorStorage, error) {
 			})),
 		)
 	} else {
-		// Use the default AWS config for other environments
 		cfg, err = config.LoadDefaultConfig(context.TODO(),
-			config.WithRegion("us-east-1"),
+			config.WithRegion(region),
 		)
 	}
 
@@ -53,13 +53,14 @@ func NewS3() (adapters.IVideoProcessorStorage, error) {
 	client := s3.NewFromConfig(cfg)
 	return &S3{
 		Client: client,
-		Region: "us-east-1", // Use your desired region here
+		Region: region,
 	}, nil
 }
 
-// Download retrieves a file from S3.
 func (s3Instance *S3) Download(file entities.File) (entities.File, error) {
-	bucketName := os.Getenv("S3_BUCKET_NAME")
+	bucketName := os.Getenv("S3_VIDEO_BUCKET_NAME")
+	fmt.Println(bucketName, file.Id)
+
 	getObjectRequest := &s3.GetObjectInput{
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(file.Id),
@@ -83,7 +84,7 @@ func (s3Instance *S3) Download(file entities.File) (entities.File, error) {
 }
 
 func (s3Instance *S3) Upload(file entities.File) (string, error) {
-	bucketName := os.Getenv("S3_BUCKET_NAME")
+	bucketName := os.Getenv("S3_IMAGES_BUCKET_NAME")
 
 	fileContent, err := os.Open(file.Id)
 	if err != nil {
