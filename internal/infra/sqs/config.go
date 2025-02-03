@@ -10,7 +10,7 @@ import (
 	"log"
 )
 
-func configHandlers() *AppHandlers {
+func ConfigHandlers() *AppHandlers {
 	videoProcessorRepository := FFMPEG.NewFFMPEG()
 	mqRepository, err := sns.NewSNS()
 	if err != nil {

@@ -21,7 +21,7 @@ type S3 struct {
 
 func NewS3() (adapters.IVideoProcessorStorage, error) {
 	env := os.Getenv("ENV")
-	region := os.Getenv("AWS_S3_REGION")
+	region := os.Getenv("S3_REGION")
 	var cfg aws.Config
 	var err error
 

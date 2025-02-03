@@ -115,7 +115,7 @@ func SetUpSQSService() {
 	ctx := context.Background()
 	queueURL := os.Getenv("SQS_QUEUE_URL")
 	region := os.Getenv("AWS_REGION")
-	handler := configHandlers()
+	handler := ConfigHandlers()
 	sqsService := NewSQSService(region, queueURL, handler)
 
 	log.Println("Starting SQS consumer...")

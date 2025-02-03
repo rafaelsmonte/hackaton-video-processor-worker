@@ -4,7 +4,10 @@ import (
 	"hackaton-video-processor-worker/internal/domain/adapters"
 	"hackaton-video-processor-worker/internal/domain/entities"
 	"os"
+	"sync"
 )
+
+var wg sync.WaitGroup
 
 type IConvertVideoUsecase interface {
 	Execute(ConvertVideoInput ConvertVideoInput) (ConvertVideoOutput, error)
@@ -48,6 +51,7 @@ var workerPool = make(chan struct{}, 5)
 func (converVideo *ConvertVideoUsecase) Execute(ConvertVideoInput ConvertVideoInput) (ConvertVideoOutput, error) {
 
 	go func() {
+		defer wg.Done()
 		workerPool <- struct{}{}
 		defer func() { <-workerPool }()
 
@@ -59,8 +63,7 @@ func (converVideo *ConvertVideoUsecase) Execute(ConvertVideoInput ConvertVideoIn
 			})
 		err := converVideo.videoProcessorMessaging.Publish(extractingStartMessage)
 		if err != nil {
-			//TODO remover panic
-			panic(err)
+			return
 		}
 		sourceFile := entities.NewFile(ConvertVideoInput.VideoId, ConvertVideoInput.VideoUrl, nil)
 		newFile, err := converVideo.videoProcessorStorage.Download(sourceFile)
