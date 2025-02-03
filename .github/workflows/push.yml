@@ -46,7 +46,7 @@ jobs:
       run: |
         export BUILD_VERSION_TAG=$(date +%Y-%m-%d-%I_%M_%S_utc)
         docker build -f docker/Dockerfile -t "video-worker-$BUILD_VERSION_TAG" .
-        docker tag "video-worker-$BUILD_VERSION_TAG:latest" "$ECR_REGISTRY/$ECR_REPOSITORY:video-worker-$BUILD_VERSION_TAG" && docker push "$ECR_REGISTRY/$ECR_REPOSITORY:video-worker-$BUILD_VERSION_TAG"
+        docker tag "video-worker-$BUILD_VERSION_TAG:latest" "$ECR_REGISTRY/$ECR_REPOSITORY:$BUILD_VERSION_TAG" && docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$BUILD_VERSION_TAG"
         docker tag "video-worker-$BUILD_VERSION_TAG:latest" "$ECR_REGISTRY/$ECR_REPOSITORY:$LATEST_TAG" && docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$LATEST_TAG"
        
  
