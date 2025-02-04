@@ -14,7 +14,7 @@ RUN go build -o app .
 
 FROM alpine:latest
 
-RUN apk --no-cache add ca-certificates
+RUN apk --no-cache add ca-certificates ffmpeg
 
 WORKDIR /root/
 

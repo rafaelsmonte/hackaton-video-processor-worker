@@ -48,5 +48,44 @@ jobs:
         docker build -f docker/Dockerfile -t "video-worker-$BUILD_VERSION_TAG" .
         docker tag "video-worker-$BUILD_VERSION_TAG:latest" "$ECR_REGISTRY/$ECR_REPOSITORY:$BUILD_VERSION_TAG" && docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$BUILD_VERSION_TAG"
         docker tag "video-worker-$BUILD_VERSION_TAG:latest" "$ECR_REGISTRY/$ECR_REPOSITORY:$LATEST_TAG" && docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$LATEST_TAG"
-       
- 
+  # deploy: 
+  #     needs: build-and-push
+  #     name: Deploy to EKS Image
+  #     runs-on: ubuntu-latest
+  #     environment: production
+  #     steps: 
+  #     - name: Check out code
+  #       uses: actions/checkout@v2
+        
+  #     - name: Configure AWS credentials
+  #       uses: aws-actions/configure-aws-credentials@v1
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ECR_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_ECR_SECRET_ACCESS_KEY }}
+  #         aws-region: ${{ secrets.AWS_ECR_REGION }}
+
+  #     - name: Login to Amazon ECR
+  #       id: login-ecr
+  #       uses: aws-actions/amazon-ecr-login@v1
+  #       with:
+  #         mask-password: true
+
+  #     - name: Install eksctl
+  #       run: |
+  #           ARCH=amd64
+  #           PLATFORM=$(uname -s)_$ARCH 
+  #           curl -sLO "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_$PLATFORM.tar.gz"
+  #           tar -xzf eksctl_$PLATFORM.tar.gz -C /tmp && rm eksctl_$PLATFORM.tar.gz
+  #           sudo mv /tmp/eksctl /usr/local/bin
+
+  #     - name: Update EKS deployment with new image
+  #       env:
+  #         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+  #         ECR_REPOSITORY:  hackaton/video_processor_worker
+  #         DEPLOYMENT_NAME: video_processor_worker-deployment
+  #         CLUSTER_NAME: video_processor_worker
+  #         IMAGE_TAG: latest
+  #       run: |
+  #           eksctl utils write-kubeconfig --cluster=$CLUSTER_NAME --region=us-east-1
+  #           kubectl rollout restart deployment/$DEPLOYMENT_NAME       
+  
