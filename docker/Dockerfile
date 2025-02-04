@@ -10,7 +10,7 @@ COPY . .
 
 WORKDIR /app/cmd
 
-RUN go build -o app .
+RUN CGO_ENABLED=0 GOOS=linux go build -o app .
 
 FROM alpine:latest
 
@@ -21,3 +21,4 @@ WORKDIR /root/
 COPY --from=builder /app/cmd/app .
 
 CMD ["./app"]
+#CMD ["sleep", "infinity"]
