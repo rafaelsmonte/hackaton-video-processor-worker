@@ -12,6 +12,7 @@ import (
 func main() {
 	godotenv.Load()
 	log.Println("Started Env: ", os.Getenv("ENV"))
-	go httpServer.StartHTTPServer()
+
+	go httpServer.StartHTTPServer(nil)
 	sqs.SetUpSQSService()
 }

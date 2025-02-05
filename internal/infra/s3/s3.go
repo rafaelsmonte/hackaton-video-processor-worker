@@ -14,8 +14,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
+type S3ClientInterface interface {
+	GetObject(ctx context.Context, input *s3.GetObjectInput, optFns ...func(*s3.Options)) (*s3.GetObjectOutput, error)
+	PutObject(ctx context.Context, input *s3.PutObjectInput, optFns ...func(*s3.Options)) (*s3.PutObjectOutput, error)
+}
 type S3 struct {
-	Client *s3.Client
+	Client S3ClientInterface
 	Region string
 }
 

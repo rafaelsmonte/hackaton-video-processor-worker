@@ -6,8 +6,8 @@ import (
 	"hackaton-video-processor-worker/mocks"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/mock/gomock"
 )
 
 func TestConvertVideoUsecase_Execute(t *testing.T) {

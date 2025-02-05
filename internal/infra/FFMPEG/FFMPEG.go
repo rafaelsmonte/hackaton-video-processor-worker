@@ -22,7 +22,7 @@ func (f *FFMPEG) ConvertToImages(file entities.File) (entities.Folder, error) {
 	outputDir := fmt.Sprintf("./output_frames_%s/", folderName)
 	if err := os.MkdirAll(outputDir, 0755); err != nil {
 		fmt.Printf("Error creating output directory: %v\n", err)
-		return entities.Folder{}, nil
+		return entities.Folder{}, err
 
 	}
 	outputPattern := filepath.Join(outputDir, "output%d.jpg")
@@ -35,7 +35,7 @@ func (f *FFMPEG) ConvertToImages(file entities.File) (entities.Folder, error) {
 
 	if err := cmd.Start(); err != nil {
 		fmt.Printf("Error starting ffmpeg: %v\n", err)
-		return entities.Folder{}, nil
+		return entities.Folder{}, err
 	}
 
 	go func() {
@@ -45,7 +45,10 @@ func (f *FFMPEG) ConvertToImages(file entities.File) (entities.Folder, error) {
 
 	if err := cmd.Wait(); err != nil {
 		fmt.Printf("Error waiting for ffmpeg: %v\n", err)
-		return entities.Folder{}, nil
+		stderr := cmd.Stderr.(*bytes.Buffer)
+		fmt.Printf("FFMPEG error: %s\n", stderr.String()) // Imprime o erro detalhado
+		fmt.Printf("Error waiting for ffmpeg: %v\n", err)
+		return entities.Folder{}, err
 
 	}
 
