@@ -6,7 +6,7 @@ on:
     branches:
       - main
 jobs:
-  build:
+  sonar:
     name: Build and analyze
     runs-on: ubuntu-latest
     steps:
@@ -23,6 +23,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   build-and-push: 
     name: Build Image
+    needs: sonar
     runs-on: ubuntu-latest
     steps:
     - name: Check out code
