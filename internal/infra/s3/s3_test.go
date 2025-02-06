@@ -49,18 +49,18 @@ func TestUpload(t *testing.T) {
 		Region: "us-east-1",
 	}
 	os.Setenv("S3_IMAGES_BUCKET_NAME", "test-bucket")
-	file := entities.File{Id: "test.txt", Content: []byte{12}}
-	os.Create(file.Id)
-	defer os.Remove(file.Id)
+	file := entities.File{Id: "test.txt", Content: []byte{12}, Name: "test.txt", UserId: "123"}
+	os.Create(file.Name)
+	defer os.Remove(file.Name)
 
 	mockS3Client.On("PutObject", mock.Anything, mock.MatchedBy(func(input *s3.PutObjectInput) bool {
-		return *input.Bucket == "test-bucket" && *input.Key == file.Id
+		return *input.Bucket == "test-bucket" && *input.Key == file.UserId+"/"+file.Name
 	})).Return(&s3.PutObjectOutput{}, nil)
 
 	uploadURL, err := s3Instance.Upload(file)
 
 	assert.NoError(t, err)
-	assert.Equal(t, uploadURL, "https://test-bucket.s3.us-east-1.amazonaws.com/test.txt")
+	assert.Equal(t, uploadURL, "https://test-bucket.s3.us-east-1.amazonaws.com/123/test.txt")
 
 	mockS3Client.AssertExpectations(t)
 }
@@ -72,13 +72,14 @@ func TestUpload_Error(t *testing.T) {
 		Region: "us-east-1",
 	}
 	os.Setenv("S3_IMAGES_BUCKET_NAME", "test-bucket")
-	file := entities.File{Id: "test.txt", Content: []byte{12}}
+	file := entities.File{Id: "test.txt", Content: []byte{12}, Name: "test.txt", UserId: "123"}
+
 	os.Create(file.Id)
 	defer os.Remove(file.Id)
 
 	mockS3Client.On("PutObject", mock.Anything, mock.MatchedBy(func(input *s3.PutObjectInput) bool {
-		return *input.Bucket == "test-bucket" && *input.Key == file.Id
-	})).Return(&s3.PutObjectOutput{}, errors.New("unable to upload"))
+		return *input.Bucket == "test-bucket" && *input.Key == file.UserId+"/"+file.Name
+	})).Return(&s3.PutObjectOutput{}, errors.New("ERROR"))
 
 	uploadURL, err := s3Instance.Upload(file)
 
@@ -95,12 +96,13 @@ func TestDownload(t *testing.T) {
 		Region: "us-east-1",
 	}
 	os.Setenv("S3_VIDEO_BUCKET_NAME", "test-bucket")
-	file := entities.File{Id: "test.txt", Content: []byte{12}}
+	file := entities.File{Id: "test.txt", Content: []byte{12}, Name: "test.txt", UserId: "123"}
+
 	os.Create(file.Id)
 	defer os.Remove(file.Id)
 
 	mockS3Client.On("GetObject", mock.Anything, mock.MatchedBy(func(input *s3.GetObjectInput) bool {
-		return *input.Bucket == "test-bucket" && *input.Key == file.Id
+		return *input.Bucket == "test-bucket" && *input.Key == file.UserId+"/"+file.Name
 	})).Return(&s3.GetObjectOutput{
 		Body: NewReadCloserWrapper([]byte("file content")),
 	}, nil)
@@ -120,12 +122,13 @@ func TestDownload_Error(t *testing.T) {
 		Region: "us-east-1",
 	}
 	os.Setenv("S3_VIDEO_BUCKET_NAME", "test-bucket")
-	file := entities.File{Id: "test.txt", Content: []byte{12}}
+	file := entities.File{Id: "test.txt", Content: []byte{12}, Name: "test.txt", UserId: "123"}
+
 	os.Create(file.Id)
 	defer os.Remove(file.Id)
 
 	mockS3Client.On("GetObject", mock.Anything, mock.MatchedBy(func(input *s3.GetObjectInput) bool {
-		return *input.Bucket == "test-bucket" && *input.Key == file.Id
+		return *input.Bucket == "test-bucket" && *input.Key == file.UserId+"/"+file.Name
 	})).Return(&s3.GetObjectOutput{
 		Body: NewReadCloserWrapper([]byte("file content")),
 	}, errors.New("unable to upload"))

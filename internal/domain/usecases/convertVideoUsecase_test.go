@@ -41,7 +41,6 @@ func TestConvertVideoUsecase_Execute(t *testing.T) {
 	mockStorage.EXPECT().Upload(gomock.Any()).Return("http://example.com/uploaded_video.mp4", nil).Times(1)
 	mockMessaging.EXPECT().Publish(gomock.Any()).Return(nil).Times(1)
 
-	wg.Add(1)
 	output, err := usecase.Execute(input)
 	wg.Wait()
 	assert.NoError(t, err)
@@ -74,9 +73,8 @@ func TestConvertVideoUsecase_Execute_ErrorHandling(t *testing.T) {
 
 	mockMessaging.EXPECT().Publish(gomock.Any()).Return(nil).Times(1)
 	mockStorage.EXPECT().Download(gomock.Any()).Return(entities.File{}, errors.New("download error")).Times(1)
-	mockMessaging.EXPECT().Publish(gomock.Any()).Return(nil).Times(2) // Espera que duas mensagens de erro sejam publicadas
+	mockMessaging.EXPECT().Publish(gomock.Any()).Return(nil).Times(1)
 
-	wg.Add(1)
 	output, err := usecase.Execute(input)
 	wg.Wait()
 
@@ -104,7 +102,7 @@ func TestConvertVideoUsecase_SendErrorMessage(t *testing.T) {
 
 	err := errors.New("test error")
 
-	mockMessaging.EXPECT().Publish(gomock.Any()).Return(nil).Times(2)
+	mockMessaging.EXPECT().Publish(gomock.Any()).Return(nil).Times(1)
 
 	usecase.SendErrorMessage(err, input)
 }

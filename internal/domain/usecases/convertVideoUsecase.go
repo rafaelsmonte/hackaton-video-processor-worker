@@ -4,6 +4,7 @@ import (
 	"hackaton-video-processor-worker/internal/domain/adapters"
 	"hackaton-video-processor-worker/internal/domain/entities"
 	"os"
+	"strconv"
 	"sync"
 )
 
@@ -46,8 +47,20 @@ func NewConvertVideoUsecase(
 	}
 }
 
-var workerPool = make(chan struct{}, 5)
+var workerPool = make(chan struct{}, getWorkerPoolSize())
 
+func getWorkerPoolSize() int {
+
+	poolSizeStr := os.Getenv("WORKER_POOL_SIZE")
+	if poolSizeStr == "" {
+		return 5
+	}
+	poolSize, err := strconv.Atoi(poolSizeStr)
+	if err != nil {
+		return 5
+	}
+	return poolSize
+}
 func (converVideo *ConvertVideoUsecase) Execute(ConvertVideoInput ConvertVideoInput) (ConvertVideoOutput, error) {
 	wg.Add(1)
 	go func() {

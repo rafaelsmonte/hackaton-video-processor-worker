@@ -21,18 +21,20 @@ func TestCompress(t *testing.T) {
 	assert.NoError(t, err)
 
 	folder := entities.Folder{
-		Name: "test_folder",
-		Path: tempDir,
+		Name:   "test_folder",
+		Path:   tempDir,
+		Id:     "123",
+		UserId: "12434",
 	}
 
 	zipper := NewZIP()
 	compressedFile, err := zipper.Compress(folder)
 	assert.NoError(t, err)
-	assert.FileExists(t, compressedFile.Id)
+	assert.FileExists(t, compressedFile.Name)
 
-	zipReader, err := zip.OpenReader(compressedFile.Id)
+	zipReader, err := zip.OpenReader(compressedFile.Name)
 	assert.NoError(t, err)
 	defer zipReader.Close()
 
-	os.Remove(compressedFile.Id)
+	defer os.Remove(compressedFile.Name)
 }
