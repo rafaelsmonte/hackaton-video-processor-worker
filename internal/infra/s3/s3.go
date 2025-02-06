@@ -63,11 +63,11 @@ func NewS3() (adapters.IVideoProcessorStorage, error) {
 
 func (s3Instance *S3) Download(file entities.File) (entities.File, error) {
 	bucketName := os.Getenv("S3_VIDEO_BUCKET_NAME")
-	fmt.Println(bucketName, file.Id)
+	fmt.Println(bucketName, file.Name)
 
 	getObjectRequest := &s3.GetObjectInput{
 		Bucket: aws.String(bucketName),
-		Key:    aws.String(file.Id),
+		Key:    aws.String(file.UserId + "/" + file.Name),
 	}
 
 	resp, err := s3Instance.Client.GetObject(context.TODO(), getObjectRequest)
@@ -90,7 +90,7 @@ func (s3Instance *S3) Download(file entities.File) (entities.File, error) {
 func (s3Instance *S3) Upload(file entities.File) (string, error) {
 	bucketName := os.Getenv("S3_IMAGES_BUCKET_NAME")
 
-	fileContent, err := os.Open(file.Id)
+	fileContent, err := os.Open(file.Name)
 	if err != nil {
 		return "", fmt.Errorf("unable to open file, %v", err)
 	}
@@ -98,7 +98,7 @@ func (s3Instance *S3) Upload(file entities.File) (string, error) {
 
 	putObjectRequest := &s3.PutObjectInput{
 		Bucket: aws.String(bucketName),
-		Key:    aws.String(file.Id),
+		Key:    aws.String(file.UserId + "/" + file.Name),
 		Body:   fileContent,
 	}
 
@@ -107,5 +107,5 @@ func (s3Instance *S3) Upload(file entities.File) (string, error) {
 		return "", fmt.Errorf("unable to upload file, %v", err)
 	}
 
-	return fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", bucketName, s3Instance.Region, file.Id), nil
+	return fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", bucketName, s3Instance.Region, file.UserId+"/"+file.Name), nil
 }

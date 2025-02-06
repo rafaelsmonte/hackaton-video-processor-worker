@@ -49,7 +49,7 @@ func NewConvertVideoUsecase(
 var workerPool = make(chan struct{}, 5)
 
 func (converVideo *ConvertVideoUsecase) Execute(ConvertVideoInput ConvertVideoInput) (ConvertVideoOutput, error) {
-
+	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		workerPool <- struct{}{}
@@ -65,7 +65,7 @@ func (converVideo *ConvertVideoUsecase) Execute(ConvertVideoInput ConvertVideoIn
 		if err != nil {
 			return
 		}
-		sourceFile := entities.NewFile(ConvertVideoInput.VideoId, ConvertVideoInput.VideoUrl, nil)
+		sourceFile := entities.NewFile(ConvertVideoInput.VideoId, ConvertVideoInput.VideoUrl, ConvertVideoInput.UserId, ConvertVideoInput.VideoName, nil)
 		newFile, err := converVideo.videoProcessorStorage.Download(sourceFile)
 		if err != nil {
 			converVideo.SendErrorMessage(err, ConvertVideoInput)
@@ -80,7 +80,7 @@ func (converVideo *ConvertVideoUsecase) Execute(ConvertVideoInput ConvertVideoIn
 			return
 		}
 		compressedFile, err := converVideo.videoProcessorCompressor.Compress(newFolder)
-		defer os.Remove(compressedFile.Id)
+		defer os.Remove(compressedFile.Name)
 		if err != nil {
 			converVideo.SendErrorMessage(err, ConvertVideoInput)
 			return
@@ -116,16 +116,7 @@ func (converVideo *ConvertVideoUsecase) SendErrorMessage(err error, ConvertVideo
 			ErrorMessage:     err.Error(),
 			ErrorDescription: err.Error(),
 		})
-	sendErrorMessage := entities.NewMessage(
-		entities.TargetEmailService,
-		entities.SendErrorMessage,
-		entities.ExtractSendErrorPayload{
-			VideoUrl:          ConvertVideoInput.VideoUrl,
-			VideoSnapshotsUrl: ConvertVideoInput.VideoUrl,
-			ErrorMessage:      err.Error(),
-			ErrorDescription:  err.Error(),
-		})
+
 	converVideo.videoProcessorMessaging.Publish(processingErrorMessage)
-	converVideo.videoProcessorMessaging.Publish(sendErrorMessage)
 
 }

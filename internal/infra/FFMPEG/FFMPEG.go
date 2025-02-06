@@ -8,7 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"time"
+	"strings"
 )
 
 type FFMPEG struct {
@@ -16,10 +16,10 @@ type FFMPEG struct {
 
 func (f *FFMPEG) ConvertToImages(file entities.File) (entities.Folder, error) {
 	inputFileData := file.Content
-	folderName := time.Now().Format("20060102150405")
 	pr, pw, _ := os.Pipe()
+	folderName := strings.ReplaceAll(file.Name, ".mp4", "")
 
-	outputDir := fmt.Sprintf("./output_frames_%s/", folderName)
+	outputDir := fmt.Sprintf("./%s/", folderName)
 	if err := os.MkdirAll(outputDir, 0755); err != nil {
 		fmt.Printf("Error creating output directory: %v\n", err)
 		return entities.Folder{}, err
@@ -52,7 +52,7 @@ func (f *FFMPEG) ConvertToImages(file entities.File) (entities.Folder, error) {
 
 	}
 
-	return entities.NewFolder(outputDir, folderName), nil
+	return entities.NewFolder(outputDir, folderName, file.Id, file.UserId), nil
 
 }
 

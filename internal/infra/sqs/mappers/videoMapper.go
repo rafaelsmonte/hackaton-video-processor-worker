@@ -7,8 +7,9 @@ import (
 
 func ProcessVideoInput(u dto.VideoProcessRequest) usecases.ConvertVideoInput {
 	return usecases.ConvertVideoInput{
-		VideoUrl: u.VideoUrl,
-		VideoId:  u.VideoId,
+		VideoId:   u.VideoId,
+		UserId:    u.UserId,
+		VideoName: u.VideoName,
 	}
 }
 

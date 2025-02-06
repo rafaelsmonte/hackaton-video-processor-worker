@@ -86,7 +86,7 @@ func (s *SQSService) ReceiveMessages() ([]*sqs.Message, error) {
 	output, err := s.SqsClient.ReceiveMessage(&sqs.ReceiveMessageInput{
 		QueueUrl:            aws.String(s.QueueURL),
 		MaxNumberOfMessages: aws.Int64(10),
-		WaitTimeSeconds:     aws.Int64(5),
+		WaitTimeSeconds:     aws.Int64(1),
 	})
 	if err != nil {
 		return nil, err

@@ -10,13 +10,11 @@ import (
 
 func TestProcessVideoInput(t *testing.T) {
 	input := dto.VideoProcessRequest{
-		VideoUrl: "http://example.com/video.mp4",
-		VideoId:  "12345",
+		VideoId: "12345",
 	}
 
 	expected := usecases.ConvertVideoInput{
-		VideoUrl: "http://example.com/video.mp4",
-		VideoId:  "12345",
+		VideoId: "12345",
 	}
 
 	result := ProcessVideoInput(input)
