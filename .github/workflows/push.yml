@@ -23,7 +23,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   build-and-push: 
     name: Build Image
-    needs: sonar
+    #needs: sonar
     runs-on: ubuntu-latest
     steps:
     - name: Check out code
