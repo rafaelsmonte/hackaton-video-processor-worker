@@ -41,8 +41,8 @@ func TestHandleMessage_UnsupportedMessageType(t *testing.T) {
 		Target  string `json:"target"`
 		Type    string `json:"type"`
 		Payload struct {
-			VideoUrl string `json:"videoUrl"`
-			VideoId  string `json:"videoId"`
+			UserId  string `json:"userId"`
+			VideoId string `json:"videoId"`
 		} `json:"payload"`
 	}{
 		Type: "UNKNOWN_TYPE",
@@ -67,17 +67,17 @@ func TestHandleMessage_SuccessfulProcessing(t *testing.T) {
 		Target  string `json:"target"`
 		Type    string `json:"type"`
 		Payload struct {
-			VideoUrl string `json:"videoUrl"`
-			VideoId  string `json:"videoId"`
+			UserId  string `json:"userId"`
+			VideoId string `json:"videoId"`
 		} `json:"payload"`
 	}{
 		Type: "MSG_EXTRACT_SNAPSHOT",
 		Payload: struct {
-			VideoUrl string `json:"videoUrl"`
-			VideoId  string `json:"videoId"`
+			UserId  string `json:"userId"`
+			VideoId string `json:"videoId"`
 		}{
-			VideoUrl: "http://example.com/video.mp4",
-			VideoId:  "1234",
+			UserId:  "http://example.com/video.mp4",
+			VideoId: "1234",
 		},
 	}
 
@@ -105,17 +105,17 @@ func TestHandleMessage_FailedProcessing(t *testing.T) {
 		Target  string `json:"target"`
 		Type    string `json:"type"`
 		Payload struct {
-			VideoUrl string `json:"videoUrl"`
-			VideoId  string `json:"videoId"`
+			UserId  string `json:"userId"`
+			VideoId string `json:"videoId"`
 		} `json:"payload"`
 	}{
 		Type: "MSG_EXTRACT_SNAPSHOT",
 		Payload: struct {
-			VideoUrl string `json:"videoUrl"`
-			VideoId  string `json:"videoId"`
+			UserId  string `json:"userId"`
+			VideoId string `json:"videoId"`
 		}{
-			VideoUrl: "http://example.com/video.mp4",
-			VideoId:  "1234",
+			UserId:  "http://example.com/video.mp4",
+			VideoId: "1234",
 		},
 	}
 

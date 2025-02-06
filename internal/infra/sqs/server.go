@@ -12,14 +12,19 @@ import (
 	"github.com/aws/aws-sdk-go/service/sqs"
 )
 
+type SQSClient interface {
+	ReceiveMessage(input *sqs.ReceiveMessageInput) (*sqs.ReceiveMessageOutput, error)
+	DeleteMessage(input *sqs.DeleteMessageInput) (*sqs.DeleteMessageOutput, error)
+}
+
 type SQSService struct {
-	sqsClient *sqs.SQS
-	queueURL  string
-	handler   *AppHandlers
+	SqsClient SQSClient
+	QueueURL  string
+	Handler   *AppHandlers
 }
 
 type AppHandlers struct {
-	videoProcessorHandler *handlers.VideoHandler
+	VideoProcessorHandler *handlers.VideoHandler
 }
 
 func NewSQSService(region, queueURL string, handler *AppHandlers) *SQSService {
@@ -44,9 +49,9 @@ func NewSQSService(region, queueURL string, handler *AppHandlers) *SQSService {
 	sqsClient := sqs.New(sess)
 
 	return &SQSService{
-		sqsClient: sqsClient,
-		queueURL:  queueURL,
-		handler:   handler,
+		SqsClient: sqsClient,
+		QueueURL:  queueURL,
+		Handler:   handler,
 	}
 }
 
@@ -57,7 +62,7 @@ func (s *SQSService) StartConsuming(ctx context.Context) {
 			log.Println("Shutting down SQS consumer...")
 			return
 		default:
-			msgs, err := s.receiveMessages()
+			msgs, err := s.ReceiveMessages()
 			go func() {
 
 				if err != nil {
@@ -66,7 +71,7 @@ func (s *SQSService) StartConsuming(ctx context.Context) {
 				}
 
 				for _, msg := range msgs {
-					if err := s.processMessage(msg); err != nil {
+					if err := s.ProcessMessage(msg); err != nil {
 						log.Printf("Error processing message: %v", err)
 						return
 					}
@@ -77,11 +82,11 @@ func (s *SQSService) StartConsuming(ctx context.Context) {
 	}
 }
 
-func (s *SQSService) receiveMessages() ([]*sqs.Message, error) {
-	output, err := s.sqsClient.ReceiveMessage(&sqs.ReceiveMessageInput{
-		QueueUrl:            aws.String(s.queueURL),
+func (s *SQSService) ReceiveMessages() ([]*sqs.Message, error) {
+	output, err := s.SqsClient.ReceiveMessage(&sqs.ReceiveMessageInput{
+		QueueUrl:            aws.String(s.QueueURL),
 		MaxNumberOfMessages: aws.Int64(10),
-		WaitTimeSeconds:     aws.Int64(5),
+		WaitTimeSeconds:     aws.Int64(1),
 	})
 	if err != nil {
 		return nil, err
@@ -89,23 +94,23 @@ func (s *SQSService) receiveMessages() ([]*sqs.Message, error) {
 	return output.Messages, nil
 }
 
-func (s *SQSService) processMessage(msg *sqs.Message) error {
+func (s *SQSService) ProcessMessage(msg *sqs.Message) error {
 	log.Printf("Processing message: %s", aws.StringValue(msg.Body))
 
-	if err := s.handler.videoProcessorHandler.HandleMessage(msg.Body); err != nil {
+	if err := s.Handler.VideoProcessorHandler.HandleMessage(msg.Body); err != nil {
 		return fmt.Errorf("failed to handle message: %w", err)
 	}
 
-	if err := s.deleteMessage(msg.ReceiptHandle); err != nil {
+	if err := s.DeleteMessage(msg.ReceiptHandle); err != nil {
 		return fmt.Errorf("failed to delete message: %w", err)
 	}
 
 	return nil
 }
 
-func (s *SQSService) deleteMessage(receiptHandle *string) error {
-	_, err := s.sqsClient.DeleteMessage(&sqs.DeleteMessageInput{
-		QueueUrl:      aws.String(s.queueURL),
+func (s *SQSService) DeleteMessage(receiptHandle *string) error {
+	_, err := s.SqsClient.DeleteMessage(&sqs.DeleteMessageInput{
+		QueueUrl:      aws.String(s.QueueURL),
 		ReceiptHandle: receiptHandle,
 	})
 	return err

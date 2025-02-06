@@ -17,7 +17,7 @@ func (f *ZIP) Compress(file entities.Folder) (entities.File, error) {
 	fileName := file.Name + ".zip"
 	zipFile, err := os.Create(fileName)
 	if err != nil {
-		return entities.NewFile("", "", nil), err
+		return entities.NewFile("", "", "", "", nil), err
 	}
 	defer zipFile.Close()
 
@@ -49,7 +49,7 @@ func (f *ZIP) Compress(file entities.Folder) (entities.File, error) {
 		return err
 	})
 
-	return entities.NewFile(fileName, file.Path, nil), nil
+	return entities.NewFile(file.Id, file.Path, file.UserId, fileName, nil), nil
 }
 
 func NewZIP() adapters.IVideoProcessorCompressor {

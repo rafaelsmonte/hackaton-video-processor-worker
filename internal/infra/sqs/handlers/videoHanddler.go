@@ -25,8 +25,9 @@ func (h *VideoHandler) HandleMessage(body *string) error {
 		Target  string `json:"target"`
 		Type    string `json:"type"`
 		Payload struct {
-			VideoUrl string `json:"videoUrl"`
-			VideoId  string `json:"videoId"`
+			UserId    string `json:"userId"`
+			VideoId   string `json:"videoId"`
+			VideoName string `json:"videoName"`
 		} `json:"payload"`
 	}
 
@@ -41,8 +42,9 @@ func (h *VideoHandler) HandleMessage(body *string) error {
 	}
 
 	videoRequest := dto.VideoProcessRequest{
-		VideoUrl: message.Payload.VideoUrl,
-		VideoId:  message.Payload.VideoId,
+		VideoId:   message.Payload.VideoId,
+		UserId:    message.Payload.UserId,
+		VideoName: message.Payload.VideoName,
 	}
 
 	input := mappers.ProcessVideoInput(videoRequest)

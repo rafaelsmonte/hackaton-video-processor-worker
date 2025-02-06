@@ -24,6 +24,6 @@ func ConfigHandlers() *AppHandlers {
 	videoUsecase := usecases.NewConvertVideoUsecase(videoProcessorRepository, mqRepository, storageRepository, zipRepository)
 	videoProcessorHandler := handlers.NewVideoHandler(&videoUsecase)
 	return &AppHandlers{
-		videoProcessorHandler: videoProcessorHandler,
+		VideoProcessorHandler: videoProcessorHandler,
 	}
 }

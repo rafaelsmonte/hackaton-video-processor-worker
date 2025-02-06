@@ -25,7 +25,12 @@ type SNS struct {
 
 func (snsInstance *SNS) Publish(message entities.Message) error {
 
-	log.Println(string(message.MessatgeType), message.Payload)
+	messageJSON, err := json.MarshalIndent(message, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to serialize message for logging: %w", err)
+	}
+
+	log.Println("Message to publish:", string(messageJSON))
 
 	ctx := context.Background()
 	topicArn := os.Getenv("SNS_TOPIC_ARN")

@@ -30,8 +30,8 @@ func TestPublish_Success(t *testing.T) {
 	snsInstance := &SNS{Client: mockClient}
 
 	message := entities.Message{
-		MessatgeType: "TestType",
-		Payload:      map[string]string{"key": "value"},
+		Type:    "TestType",
+		Payload: map[string]string{"key": "value"},
 	}
 
 	messageBody, _ := json.Marshal(message)
@@ -51,8 +51,8 @@ func TestPublish_FailSerialization(t *testing.T) {
 	snsInstance := &SNS{}
 
 	message := entities.Message{
-		MessatgeType: "TestType",
-		Payload:      make(chan int),
+		Type:    "TestType",
+		Payload: make(chan int),
 	}
 
 	err := snsInstance.Publish(message)
@@ -67,8 +67,8 @@ func TestPublish_FailToPublish(t *testing.T) {
 	snsInstance := &SNS{Client: mockClient}
 
 	message := entities.Message{
-		MessatgeType: "TestType",
-		Payload:      map[string]string{"key": "value"},
+		Type:    "TestType",
+		Payload: map[string]string{"key": "value"},
 	}
 
 	messageBody, _ := json.Marshal(message)
