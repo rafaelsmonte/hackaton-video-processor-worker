@@ -20,8 +20,7 @@
 # Go workspace file
 go.work
 
-# mockery mocks
-mocks/
+
 # Ignore all .env files
 *.env
 
