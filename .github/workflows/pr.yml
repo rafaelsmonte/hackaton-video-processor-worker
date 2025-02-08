@@ -45,7 +45,6 @@ jobs:
 
   build: 
     name: Build Image
-    needs: sonar
     runs-on: ubuntu-latest
     steps:
     - name: Check out code
