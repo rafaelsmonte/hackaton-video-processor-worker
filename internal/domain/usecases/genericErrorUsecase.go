@@ -13,9 +13,7 @@ type GenericErrorUsecase struct {
 	videoProcessorMessaging adapters.IVideoProcessorMessaging
 }
 
-// Execute implements IConvertVideoUsecase.
 func (genericError *GenericErrorUsecase) Execute(ConvertVideoInput ConvertVideoInput) (ConvertVideoOutput, error) {
-	log.Println("Generic Error <<<")
 
 	genericErrorMessage := entities.NewMessage(
 		entities.TargetVideoSQSService,

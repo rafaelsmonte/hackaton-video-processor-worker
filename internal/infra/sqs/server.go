@@ -28,21 +28,12 @@ type AppHandlers struct {
 }
 
 func NewSQSService(region, queueURL string, handler *AppHandlers) *SQSService {
-	env := os.Getenv("ENV")
 	var awsConfig *aws.Config
 
-	if env == "DEV" {
-		awsConfig = &aws.Config{
-			Region:   aws.String("us-east-1"),
-			Endpoint: aws.String("http://localhost:4566"),
-		}
-		log.Println("Using LocalStack for SQS")
-	} else {
-		awsConfig = &aws.Config{
-			Region: aws.String(region),
-		}
-		log.Println("Using AWS SQS")
+	awsConfig = &aws.Config{
+		Region: aws.String(region),
 	}
+	log.Println("Using AWS SQS")
 
 	sess := session.Must(session.NewSession(awsConfig))
 

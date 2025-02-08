@@ -24,31 +24,13 @@ type S3 struct {
 }
 
 func NewS3() (adapters.IVideoProcessorStorage, error) {
-	env := os.Getenv("ENV")
 	region := os.Getenv("S3_REGION")
 	var cfg aws.Config
 	var err error
 
-	if env == "DEV" {
-		// Use LocalStack when in DEV environment
-		cfg, err = config.LoadDefaultConfig(context.TODO(),
-			config.WithRegion(region),
-			config.WithEndpointResolver(aws.EndpointResolverFunc(func(service, region string) (aws.Endpoint, error) {
-				if service == s3.ServiceID {
-					// Set LocalStack endpoint for S3
-					return aws.Endpoint{
-						URL:               "http://localhost:4566", // LocalStack default S3 endpoint
-						HostnameImmutable: true,
-					}, nil
-				}
-				return aws.Endpoint{}, fmt.Errorf("unknown service %s", service)
-			})),
-		)
-	} else {
-		cfg, err = config.LoadDefaultConfig(context.TODO(),
-			config.WithRegion(region),
-		)
-	}
+	cfg, err = config.LoadDefaultConfig(context.TODO(),
+		config.WithRegion(region),
+	)
 
 	if err != nil {
 		return nil, fmt.Errorf("unable to load SDK config, %v", err)

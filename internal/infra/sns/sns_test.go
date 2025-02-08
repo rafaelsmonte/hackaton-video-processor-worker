@@ -82,3 +82,35 @@ func TestPublish_FailToPublish(t *testing.T) {
 	assert.Contains(t, err.Error(), "failed to publish message")
 	mockClient.AssertExpectations(t)
 }
+
+func TestPublish_MissingTopicArn(t *testing.T) {
+	os.Unsetenv("SNS_TOPIC_ARN")
+
+	mockClient := new(mockSNSClient)
+	snsInstance := &SNS{Client: mockClient}
+
+	message := entities.Message{
+		Type:    "TestType",
+		Payload: map[string]string{"key": "value"},
+	}
+
+	err := snsInstance.Publish(message)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "SNS_TOPIC_ARN is not set")
+}
+
+func TestPublish_LoggingSerializationError(t *testing.T) {
+	os.Setenv("SNS_TOPIC_ARN", "arn:aws:sns:us-east-1:123456789012:test-topic")
+
+	mockClient := new(mockSNSClient)
+	snsInstance := &SNS{Client: mockClient}
+
+	message := entities.Message{
+		Type:    "TestType",
+		Payload: make(chan int),
+	}
+
+	err := snsInstance.Publish(message)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to serialize message for logging")
+}
