@@ -51,6 +51,5 @@ jobs:
     - name: Check out code
       uses: actions/checkout@v2
     - name: Build image
-      env:
       run: docker build -f docker/Dockerfile .
   
