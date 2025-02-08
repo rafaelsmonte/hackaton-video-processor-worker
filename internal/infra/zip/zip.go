@@ -8,13 +8,18 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 type ZIP struct {
 }
 
 func (f *ZIP) Compress(file entities.Folder) (entities.File, error) {
-	fileName := file.Name + ".zip"
+
+	//tests de carga
+	currentTime := time.Now().Format("2006-01-02 15:04:05")
+	//
+	fileName := file.Name + "-" + currentTime + ".zip"
 	zipFile, err := os.Create(fileName)
 	if err != nil {
 		return entities.NewFile("", "", "", "", nil), err

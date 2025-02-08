@@ -3,7 +3,6 @@ package usecases
 import (
 	"hackaton-video-processor-worker/internal/domain/adapters"
 	"hackaton-video-processor-worker/internal/domain/entities"
-	"log"
 )
 
 type IGenericErrorUsecase interface {
@@ -24,7 +23,6 @@ func (genericError *GenericErrorUsecase) Execute(ConvertVideoInput ConvertVideoI
 			ErrorMessage:     "GENERIC_ERROR",
 			ErrorDescription: "Gerneric Error",
 		})
-	log.Println("Generic Error <<<", genericErrorMessage)
 
 	genericError.videoProcessorMessaging.Publish(genericErrorMessage)
 
