@@ -21,6 +21,8 @@ type ConvertVideoUsecase struct {
 	videoProcessorCompressor adapters.IVideoProcessorCompressor
 }
 
+// GenericError implements IConvertVideoUsecase.
+
 type ConvertVideoInput struct {
 	VideoName        string
 	VideoUrl         string
@@ -73,6 +75,7 @@ func (converVideo *ConvertVideoUsecase) Execute(ConvertVideoInput ConvertVideoIn
 			entities.StartProcessingMessage,
 			entities.StartProcessingPayload{
 				VideoId: ConvertVideoInput.VideoId,
+				UserId:  ConvertVideoInput.UserId,
 			})
 		err := converVideo.videoProcessorMessaging.Publish(extractingStartMessage)
 		if err != nil {
@@ -110,6 +113,7 @@ func (converVideo *ConvertVideoUsecase) Execute(ConvertVideoInput ConvertVideoIn
 			entities.ExtractSuccessPayload{
 				VideoSnapshotsUrl: uploadURL,
 				VideoId:           ConvertVideoInput.VideoId,
+				UserId:            ConvertVideoInput.UserId,
 			})
 
 		converVideo.videoProcessorMessaging.Publish(extractingSuccessMessage)
@@ -126,10 +130,14 @@ func (converVideo *ConvertVideoUsecase) SendErrorMessage(err error, ConvertVideo
 		entities.ExtractErrorMessage,
 		entities.ExtractErrorPayload{
 			VideoId:          ConvertVideoInput.VideoId,
+			UserId:           ConvertVideoInput.UserId,
 			ErrorMessage:     err.Error(),
 			ErrorDescription: err.Error(),
 		})
 
 	converVideo.videoProcessorMessaging.Publish(processingErrorMessage)
 
+}
+func (converVideo *ConvertVideoUsecase) GenericError() {
+	panic("unimplemented")
 }

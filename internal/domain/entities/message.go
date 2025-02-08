@@ -21,26 +21,22 @@ type Message struct {
 type ExtractSuccessPayload struct {
 	VideoSnapshotsUrl string `json:"videoSnapshotsUrl"`
 	VideoId           string `json:"videoId"`
+	UserId            string `json:"userId"`
 }
 type ExtractErrorPayload struct {
 	VideoId          string `json:"videoId"`
+	UserId           string `json:"userId"`
 	ErrorMessage     string `json:"errorMessage"`
 	ErrorDescription string `json:"errorDescription"`
 }
 
-type ExtractSendSuccessPayload struct {
-	VideoSnapshotsUrl string `json:"videoSnapshotsUrl"`
-	VideoUrl          string `json:"videoId"`
-}
-type ExtractSendErrorPayload struct {
-	VideoSnapshotsUrl string `json:"videoSnapshotsUrl"`
-	VideoUrl          string `json:"videoId"`
-	ErrorMessage      string `json:"errorMessage"`
-	ErrorDescription  string `json:"errorDescription"`
-}
-
 type StartProcessingPayload struct {
 	VideoId string `json:"videoId"`
+	UserId  string `json:"userId"`
+}
+type GenericErrorPayload struct {
+	VideoId string `json:"videoId"`
+	UserId  string `json:"userId"`
 }
 
 func NewMessage(target Target, messageType MessageTypeEnum, payload interface{}) Message {
