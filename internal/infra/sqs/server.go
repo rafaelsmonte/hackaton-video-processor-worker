@@ -119,10 +119,14 @@ func (s *SQSService) DeleteMessage(receiptHandle *string) error {
 func SetUpSQSService() {
 	ctx := context.Background()
 	queueURL := os.Getenv("SQS_QUEUE_URL")
+	dlqURL := os.Getenv("SQS_DLQ_URL")
 	region := os.Getenv("AWS_REGION")
-	handler := ConfigHandlers()
-	sqsService := NewSQSService(region, queueURL, handler)
+	processingHandlers := ConfigProcessingHandlers()
+	dlqHandlers := ConfigDLQHandlers()
+	sqsService := NewSQSService(region, queueURL, processingHandlers)
+	sqsServiceDLQ := NewSQSService(region, dlqURL, dlqHandlers)
 
 	log.Println("Starting SQS consumer...")
-	sqsService.StartConsuming(ctx)
+	go sqsService.StartConsuming(ctx)
+	sqsServiceDLQ.StartConsuming(ctx)
 }

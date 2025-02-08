@@ -10,7 +10,7 @@ import (
 	"log"
 )
 
-func ConfigHandlers() *AppHandlers {
+func ConfigProcessingHandlers() *AppHandlers {
 	videoProcessorRepository := FFMPEG.NewFFMPEG()
 	mqRepository, err := sns.NewSNS()
 	if err != nil {
@@ -22,6 +22,18 @@ func ConfigHandlers() *AppHandlers {
 	}
 	zipRepository := zip.NewZIP()
 	videoUsecase := usecases.NewConvertVideoUsecase(videoProcessorRepository, mqRepository, storageRepository, zipRepository)
+	videoProcessorHandler := handlers.NewVideoHandler(&videoUsecase)
+	return &AppHandlers{
+		VideoProcessorHandler: videoProcessorHandler,
+	}
+}
+func ConfigDLQHandlers() *AppHandlers {
+	mqRepository, err := sns.NewSNS()
+	if err != nil {
+		log.Fatalln("Error connecting to SNS", err)
+	}
+
+	videoUsecase := usecases.NewGenericErrorUsecase(mqRepository)
 	videoProcessorHandler := handlers.NewVideoHandler(&videoUsecase)
 	return &AppHandlers{
 		VideoProcessorHandler: videoProcessorHandler,
