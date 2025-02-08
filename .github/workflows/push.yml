@@ -5,9 +5,6 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
 
 jobs:
   sonar:
@@ -48,7 +45,7 @@ jobs:
 
   build-and-push: 
     name: Build Image
-    #needs: sonar
+    needs: sonar
     runs-on: ubuntu-latest
     steps:
     - name: Check out code
