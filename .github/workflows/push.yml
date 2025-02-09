@@ -7,6 +7,27 @@ on:
       - main
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.23
+
+      - name: Install goveralls
+        run: go install github.com/mattn/goveralls@latest
+
+      - name: Run Tests and Generate Coverage
+        run: go test -covermode=count -coverprofile=coverage.out ./...
+
+      - name: Upload to Coveralls
+        env:
+          COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
+        run: goveralls -coverprofile=coverage.out -service=github
   sonar:
     name: sonar
     runs-on: ubuntu-latest
