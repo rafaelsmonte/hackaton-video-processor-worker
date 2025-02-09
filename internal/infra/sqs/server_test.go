@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -118,4 +119,35 @@ func TestDeleteMessage(t *testing.T) {
 	assert.NoError(t, err)
 
 	mockSQS.AssertExpectations(t)
+}
+func TestNewSQSService(t *testing.T) {
+	region := "us-east-1"
+	queueURL := "https://sqs.us-east-1.amazonaws.com/123456789012/test-queue"
+	mockHandler := &AppHandlers{}
+
+	service := NewSQSService(region, queueURL, mockHandler)
+
+	assert.NotNil(t, service)
+	assert.Equal(t, queueURL, service.QueueURL)
+	assert.NotNil(t, service.SqsClient)
+	assert.IsType(t, &sqs.SQS{}, service.SqsClient)
+	assert.Equal(t, mockHandler, service.Handler)
+
+	awsConfig := &aws.Config{Region: aws.String(region)}
+	sess := session.Must(session.NewSession(awsConfig))
+	expectedClient := sqs.New(sess)
+	assert.IsType(t, expectedClient, service.SqsClient)
+}
+
+func MockNewSQSService(region, queueURL string, handler *AppHandlers) *SQSService {
+	mockService := new(MockSQSService)
+	mockService.On("StartConsuming", mock.Anything).Return()
+	return &SQSService{
+		SqsClient: nil,
+		QueueURL:  queueURL,
+		Handler:   handler,
+	}
+}
+func NewMockSQSService(region, queueURL string, handlers interface{}) *MockSQSService {
+	return &MockSQSService{}
 }
