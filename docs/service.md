@@ -70,8 +70,6 @@ If an error occurs during image extraction, the Video Processor Worker sends an 
 ```mermaid
 sequenceDiagram  
 Video Processor Worker->>Video Processor API: MSG_EXTRACT_SNAPSHOT_ERROR  
-  Note over Video Processor API: video.status = VIDEO_IMAGE_EXTRACTION_ERROR  
-  Video Processor API->>Email Service: MSG_SEND_SNAPSHOT_EXTRACTION_ERROR  
 ```
 
 **The Video Processor Worker** receives an error when attempting to extract the images.
