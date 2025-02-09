@@ -1,0 +1,1 @@
+[![Coverage Status](https://coveralls.io/repos/github/rafaelsmonte/hackaton-video-processor-worker/badge.svg?branch=main)](https://coveralls.io/github/rafaelsmonte/hackaton-video-processor-worker?branch=main)
