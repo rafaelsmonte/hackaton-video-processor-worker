@@ -24,7 +24,8 @@ The Video Processor API sends a message to the Video Processor Worker through th
   "target": "VIDEO_IMAGE_PROCESSOR_SERVICE",
   "payload": {
     "videoId": "string", // The video ID
-    "userId": "string"   // The user ID, received in the request header
+    "userId": "string",  // The user ID
+    "videoName": "string"   // The video Name
   }
 }
 ```
@@ -55,7 +56,7 @@ The Video Processor API sends a message to the Video Processor Worker through th
   "target": "VIDEO_API_SERVICE",
   "payload": {
     "videoId": "string", // The video ID
-    "userId": "string",  // The user ID, representing the owner of the video
+    "userId": "string",  // The user ID
     "videoSnapshotsUrl": "string" // The URL for the zip file with the extracted images
   }
 }
@@ -86,7 +87,7 @@ The Video Processor Worker sends an error message to the Video Processor API wit
   "target": "VIDEO_API_SERVICE",
   "payload": {
     "videoId": "string", // The video ID
-    "userId": "string",  // The user ID, representing the owner of the video
+    "userId": "string",  // The user ID
     "errorMessage": "string",
     "errorDescription": "string"
   }
