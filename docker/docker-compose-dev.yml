@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  hackaton-video-processor-worker:
+    build:
+      context: ../ 
+      dockerfile: docker/Dockerfile 
+    container_name: hackaton-video-processor-worker
+    env_file:
+      - ./test-local.env
