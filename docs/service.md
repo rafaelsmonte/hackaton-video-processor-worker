@@ -7,7 +7,6 @@
 ```mermaid
 sequenceDiagram  
 Video Processor API->>Video Processor Worker: MSG_EXTRACT_SNAPSHOT  
-  Note over Video Processor Worker: Download video from S3
   Video Processor Worker->>Video Processor API: MSG_EXTRACT_SNAPSHOT_PROCESSING  
   Video Processor Worker->>S3: Get Video  
   Video Processor Worker->>FFMPEG: Extract images from video  
