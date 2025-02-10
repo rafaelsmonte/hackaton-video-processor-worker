@@ -13,7 +13,6 @@ This documentation is organized as follows:
 ### Documentation
 
 - [Video Processor API Service](docs/service.md)
-- [API](docs/api.md)
 - [Development](docs/development.md)
 
 ### Authors
