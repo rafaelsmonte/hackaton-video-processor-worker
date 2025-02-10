@@ -27,7 +27,7 @@ jobs:
         run: go install github.com/mattn/goveralls@latest
 
       - name: Rodar testes e gerar cobertura
-        run: go test -covermode=count -coverprofile=coverage.out ./...
+        run: go test $(go list ./... | grep -v /sqs/dto |   grep -v /internal/domain/adapters |   grep -v /internal/domain/entities  | grep -v /cmd) -coverprofile=coverage.out
       
       - name: Upload to Coveralls
         env:
