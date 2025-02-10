@@ -11,7 +11,7 @@ This documentation is organized as follows:
 
 ### Documentation
 
-- [Video Processor API Service](docs/service.md)
+- [Video Processor Worker Service](docs/service.md)
 - [Development](docs/development.md)
 - [CI/CD](docs/ci-cd.md)
 ### Authors
