@@ -28,7 +28,6 @@ go.work
 *.zip
 
 # Ignore all .png files
-*.png
 *.mp4
 
 ffmpeg/
