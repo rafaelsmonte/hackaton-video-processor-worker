@@ -1,4 +1,4 @@
-# CI Workflow - Application
+# CI/CD Workflow - Application
 
 ## Development Flow
 
@@ -25,6 +25,24 @@ For a Pull Request to be accepted into the `main` branch, the following verifica
 - When the PR is submitted, it will be reviewed by at least one member of the project.
 - After the review and approval by the reviewer, the code can be merged into the `main` branch.
 
+## CD Process
+
+Once the code is merged into `main`, the **Continuous Deployment (CD)** process is triggered:
+
+### Steps
+
+1. **Upload to ECR**:
+   - A **container image** will be built and uploaded to **Amazon Elastic Container Registry (ECR)**.
+   - Two versions of the image will be uploaded:
+     - **Tag `latest`**: This will always point to the most recent stable build.
+     - **Tag with the commit hash**: This will allow for precise version control and easy rollbacks to any previous version of the application.
+
+2. **Update Container on EKS**:
+   - After the image is successfully uploaded to ECR, the container on **Amazon Elastic Kubernetes Service (EKS)** will be updated to reflect the new image.
+   - This will ensure that the latest version of the code is running in the production environment.
+
 ## Considerations
 
 - The `main` branch will always be kept stable and secure, as changes go through rigorous testing and reviews before being integrated.
+- The CD process ensures that the latest code is continuously deployed to the production environment via ECR and EKS.
+- Uploading both the `latest` tag and the commit hash tag allows for easy version tracking and quick rollbacks if needed.
