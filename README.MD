@@ -26,6 +26,7 @@ This documentation is organized as follows:
 
 ## Evidences
 
+
 ![Coverage](docs/evidences/video-processor-worker-coverage.png)
 ![Sucessful pipeline on push](docs/evidences/video-processor-worker-pipeline.png)
 ![Sucessful pipeline on pr](docs/evidences/video-processor-worker-pipeline-pr.png)
