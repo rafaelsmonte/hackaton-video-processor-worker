@@ -1,13 +1,12 @@
-## Hackathon 7SOAT Video Processor API Service - FIAP
+## Hackathon 7SOAT Video Processor Worker Service - FIAP
 
-This project implements a set of APIs designed to support the business logic of a video image extraction system.
+This project implements a video worker responsible for downloading a video, extracting frames as images (one per second), compressing them, and uploading them to Amazon S3.
 
-The project architecture utilizes the Express framework with a clean architecture.
+The project follows **Clean Architecture** and is implemented using **Golang**.
 
 This documentation is organized as follows:
 
 - **Service**: Outlines the core business rules and workflows, detailing how the service integrates with other system components.
-- **API**: Describes all endpoints, including request formats and response structures.
 - **Development**: Provides step-by-step instructions for setting up the development environment and running the project locally.
 
 ### Documentation
