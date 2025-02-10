@@ -14,7 +14,7 @@ This documentation is organized as follows:
 
 - [Video Processor API Service](docs/service.md)
 - [Development](docs/development.md)
-
+- [CI/CD](docs/ci-cd.md)
 ### Authors
 
 - _Rafael Santos Monte (RM355045)_
