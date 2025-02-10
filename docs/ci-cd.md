@@ -14,21 +14,19 @@ For a Pull Request to be accepted into the `main` branch, the following verifica
 1. **Build**: The code in the PR must pass the build step successfully.
 2. **Tests & Analysis**:
    - The code must be tested, and the **test coverage must be greater than 80%** for the PR to be accepted.
-   - The code is sent to **SonarQube** for static analysis, where it is evaluated for:
-     - **Potential security vulnerabilities**
-     - **Code coverage**
-     - **Code duplication**
-     - **Dependency checks** (ensuring no critical vulnerabilities exist in third-party libraries)
-
-### PR Approval
-
-- For the PR to be accepted, at least **one reviewer** from the project must approve the change.
-- The person who made the commit **cannot be the reviewer**.
+   - The code is sent to **SonarQube**, which performs:
+     - Security vulnerability analysis.
+     - Code coverage validation.
+     - Code duplication detection.
+     - Dependency analysis to check for vulnerabilities.
+3. **PR Approval**:
+   - For the PR to be accepted, at least **one reviewer** from the project must approve the change.
+   - The person who made the commit **cannot be the reviewer**.
 
 ## Approval Flow
 
 - When the PR is submitted, it will be reviewed by at least one member of the project.
-- If all checks pass (build, tests, SonarQube analysis, and reviewer approval), the code can be merged into the `main` branch.
+- After the review and approval by the reviewer, the code can be merged into the `main` branch.
 
 ## CD Process
 
@@ -36,18 +34,27 @@ Once the code is merged into `main`, the **Continuous Deployment (CD)** process 
 
 ### Steps
 
-1. **Upload to ECR**:
-   - A **container image** will be built and uploaded to **Amazon Elastic Container Registry (ECR)**.
-   - Two versions of the image will be uploaded:
-     - **Tag `latest`**: Always pointing to the most recent stable build.
-     - **Tag with the commit hash**: Allowing precise version control and easy rollbacks if needed.
+1. **Build & Tests**:
+   - The application is built again to ensure consistency.
+   - The same **test suite** used in CI runs again to confirm that the merged code remains stable.
+   - The code is analyzed again by **SonarQube**, verifying:
+     - Security vulnerabilities.
+     - Code coverage.
+     - Code duplication.
+     - Dependencies.
 
-2. **Update Container on EKS**:
-   - After the image is successfully uploaded to ECR, the container on **Amazon Elastic Kubernetes Service (EKS)** will be updated to reflect the new image.
-   - This ensures that the latest version of the code is running in the production environment.
+2. **Upload to ECR**:
+   - A **container image** is built and uploaded to **Amazon Elastic Container Registry (ECR)**.
+   - Two versions of the image are pushed:
+     - **Tag `latest`**: Always points to the most recent stable build.
+     - **Tag with the commit hash**: Enables precise version control and easier rollbacks.
+
+3. **Update Container on EKS**:
+   - After the image is uploaded to ECR, the container on **Amazon Elastic Kubernetes Service (EKS)** is updated.
+   - This ensures the latest validated version is running in the production environment.
 
 ## Considerations
 
-- The `main` branch is kept stable and secure, as all changes go through rigorous testing, SonarQube analysis, and manual reviews before being integrated.
-- The **SonarQube** analysis helps prevent security vulnerabilities, maintain high code quality, and ensure that dependencies are safe.
-- The **CD process** ensures seamless deployments while maintaining easy rollback options through tagged images.
+- The `main` branch remains stable and secure, as changes go through rigorous testing and reviews before integration.
+- The **CD process also includes testing and SonarQube analysis**, ensuring that any new deployment maintains high quality and security.
+- Uploading both the `latest` tag and the commit hash tag allows for easy version tracking and quick rollbacks if needed.
